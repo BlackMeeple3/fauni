@@ -346,10 +346,10 @@ function newGameState(np){
   for(let i=objDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[objDeck[i],objDeck[j]]=[objDeck[j],objDeck[i]]}
   const st={np,deck,objDeck,objActive:objDeck.splice(0,4),
     valley:new Map(),players:[],round:1,seat:0,closed:false,phase:'pass',log:[]};
-  // Valle parte vuota: la prima tessera arriva dal primo turno
+  st.valley.set(key(0,0),deck.pop());
   for(let i=0;i<np;i++){
     const p={name:'Giocatore '+(i+1),prato:new Map(),hand:[],score:0,used:[false,false,false]};
-    p.prato.set(key(0,0),deck.pop());
+    p.prato.set(key(20+i*2,0),deck.pop()); // offset lontano dalla Valle (che usa 0,0)
     for(let j=0;j<5;j++)p.hand.push(deck.pop());
     st.players.push(p);
   }
@@ -461,10 +461,11 @@ function placeAt(q,r){
   const tgt=isPrato?p.prato:S.valley;
   if(tgt.has(key(q,r)))return;
   if(tgt.size&&!DIRS.some(d=>tgt.has(key(q+d[0],r+d[1]))))return;
-  PLACING=true;setTimeout(()=>{PLACING=false},500);
+  PLACING=true;
   delete tile._r;
   tgt.set(key(q,r),tile);
   p.hand.splice(SEL,1);SEL=0;
+  PLACING=false; // reset immediato: la guardia serve solo a bloccare eventi doppi nello stesso gesto
   if(isPrato){
     if(tile.guest==='monaco'){
       for(const d of DIRS){const nt=p.prato.get(key(q+d[0],r+d[1]));
@@ -698,9 +699,10 @@ function dragEnd(x,y){
   DRAG.g.remove();const i=DRAG.i;DRAG=null;
   if(HOT){HOT.setAttribute('fill','rgba(217,164,65,.13)');HOT=null}
   PEND=null;
+  if(Date.now()-lastDrop<400)return; // evita doppio rilascio
   const targetId=S.phase==='prato'?'boardP':'boardV';
   const hit=hitHex(targetId,x,y);
-  if(hit){lastDrop=Date.now();SEL=i;PLACING=false;placeAt(hit[0],hit[1])}
+  if(hit){lastDrop=Date.now();SEL=i;placeAt(hit[0],hit[1])}
   else render();
 }
 function wireDrag(){
