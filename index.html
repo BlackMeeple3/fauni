@@ -13,43 +13,37 @@ body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Segoe UI
 #hdr{padding:7px 12px 5px;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0}
 #hdr .top{display:flex;justify-content:space-between;align-items:center}
 #hdr h1{font-size:15px;color:var(--ocra);font-family:Georgia,serif}
-#hdr .ver{font-size:10px;color:var(--ink2);margin-left:5px}
+#hdr .ver{font-size:10px;color:var(--ink2);margin-left:4px}
 #hdr .rnd{font-size:11px;color:var(--ink2)}
 #phase{padding:6px 12px;font-size:12px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;min-height:32px;gap:6px}
 #phase b{color:var(--ocra)}
 #tabs{display:flex;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0}
-#tabs button{flex:1;padding:7px 0;background:none;border:none;color:var(--ink2);font:600 11px -apple-system,sans-serif;border-bottom:2px solid transparent}
+#tabs button{flex:1;padding:7px 0;background:none;border:none;color:var(--ink2);font:600 11px sans-serif;border-bottom:2px solid transparent}
 #tabs button.on{color:var(--ink);border-bottom-color:var(--ocra)}
 #main{flex:1;overflow:hidden;position:relative;min-height:0}
 .view{position:absolute;inset:0;display:none;overflow:auto}
-.view.on{display:flex;flex-direction:column}
-#dual{display:flex;flex-direction:column;height:100%}
-#dual .pane{flex:1;min-height:0;position:relative}
-#dual .pane:first-child{border-bottom:2px solid var(--line)}
-#dual .pane-lbl{position:absolute;top:4px;left:8px;font-size:10px;font-weight:600;color:var(--ocra);z-index:2;background:rgba(35,39,31,.8);padding:2px 6px;border-radius:4px;pointer-events:none}
-.board-wrap{width:100%;height:100%;overflow:hidden}
+.view.on{display:block}
+#boardWrap{width:100%;height:100%;overflow:hidden}
 svg.board{width:100%;height:100%;display:block;touch-action:none}
-.tview{overflow:auto}
+.tview{overflow:auto;padding-bottom:8px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;margin:8px 10px}
-.card h2{font-size:13px;color:var(--ocra);margin-bottom:3px;font-family:Georgia,serif}
-.card .d{font-size:11px;color:var(--ink2)}
-.shapes{margin-top:6px;display:flex;flex-direction:column;gap:3px}
-.shape-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:2px 0;border-bottom:1px solid var(--line)}
+.card h2{font-size:13px;color:var(--ocra);margin-bottom:4px;font-family:Georgia,serif}
+.card .d{font-size:11px;color:var(--ink2);line-height:1.4}
+.shapes{margin-top:6px;display:flex;flex-direction:column;gap:2px}
+.shape-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px solid var(--line)}
 .shape-row:last-child{border:none}
-.shape-row .pts{color:var(--ocra);font-weight:700}
-.proj{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
-.proj span{font-size:10px;background:var(--panel2);border-radius:5px;padding:2px 6px}
+.shape-row .pts{color:var(--ocra);font-weight:700;white-space:nowrap}
 #hand{border-top:1px solid var(--line);background:var(--panel);padding:5px 8px 8px;flex-shrink:0}
-#hand .row{display:flex;gap:6px;align-items:center;padding-bottom:2px}
-#hand .slot{flex:0 0 auto;border:2px solid transparent;border-radius:9px;padding:2px;background:var(--panel2);touch-action:none;position:relative}
+#hand .row{display:flex;gap:6px;align-items:center;padding-bottom:2px;overflow-x:auto}
+#hand .slot{flex:0 0 auto;border:2px solid transparent;border-radius:9px;padding:2px;background:var(--panel2);touch-action:none}
 #hand .slot.sel{border-color:var(--ocra)}
-#hand .slot .cnt{position:absolute;top:-4px;right:-4px;background:var(--ocra);color:#23271F;font:700 9px sans-serif;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center}
 #hand .ctr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px;flex-wrap:wrap}
 #hand .ctr .lbl{font-size:10px;color:var(--ink2)}
 #hand .btns{display:flex;gap:5px;flex-wrap:wrap}
-.btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:6px 11px;border-radius:7px;font:600 11px -apple-system,sans-serif}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:6px 11px;border-radius:7px;font:600 11px sans-serif}
 .btn.gold{background:var(--ocra);color:#23271F;border-color:var(--ocra)}
 .btn.warn{border-color:var(--rosso);color:var(--rosso)}
+.btn.act{border-color:var(--ocra);color:var(--ocra)}
 .btn:disabled{opacity:.35}
 .ovl{position:fixed;inset:0;background:rgba(20,22,17,.96);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;z-index:50;overflow:auto}
 .ovl.on{display:flex}
@@ -69,9 +63,6 @@ td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--ink2);font-weight:600;font-size:10px}
 #toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:var(--ocra);color:#23271F;padding:6px 14px;border-radius:16px;font:600 11px sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:60;max-width:88%;text-align:center}
 #errbar{display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:#C4574A;color:#fff;font:10px monospace;padding:5px 8px;max-height:30vh;overflow:auto}
-/* chiusura flash */
-@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}
-.closed-flash{animation:flash .5s 3}
 </style>
 </head>
 <body>
@@ -79,7 +70,7 @@ th{color:var(--ink2);font-weight:600;font-size:10px}
 <script>
 var _lt=0;
 document.addEventListener('touchend',function(e){var n=Date.now();if(n-_lt<320)e.preventDefault();_lt=n},{passive:false});
-window.addEventListener('error',function(e){var b=document.getElementById('errbar');if(b){b.style.display='block';b.textContent='ERR: '+(e.message||'?')+' @'+(e.lineno||'?')}});
+window.addEventListener('error',function(e){var b=document.getElementById('errbar');if(b){b.style.display='block';b.textContent='ERR:'+(e.message||'?')+':'+e.lineno}});
 </script>
 
 <div id="setup">
@@ -108,46 +99,29 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 
 <div id="hdr">
   <div class="top">
-    <span><span style="font-size:15px;color:var(--ocra);font-family:Georgia,serif">Il Regno dei Faùni</span><span class="ver">v1.0</span></span>
+    <span style="font-size:15px;color:var(--ocra);font-family:Georgia,serif">Il Regno dei Faùni<span style="font-size:10px;color:var(--ink2);margin-left:4px">v1.1</span></span>
     <span class="rnd" id="rndLbl"></span>
   </div>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:11px;color:var(--ink2)"></span></div>
 <div id="tabs">
-  <button data-v="plance" class="on">Plance</button>
-  <button data-v="valle">Valle</button>
+  <button data-v="valle" class="on">Valle</button>
+  <button data-v="forme">Forme</button>
   <button data-v="punti">Punti</button>
 </div>
 <div id="main">
-  <div class="view on" id="vPlance">
-    <div id="dual">
-      <div class="pane" id="panePrato">
-        <div class="pane-lbl" id="pratoLbl">Il tuo Prato</div>
-        <div class="board-wrap" id="boardP"></div>
-      </div>
-      <div class="pane" id="paneValle">
-        <div class="pane-lbl">Valle (comune)</div>
-        <div class="board-wrap" id="boardV"></div>
-      </div>
-    </div>
+  <div class="view on" id="vValle">
+    <div id="boardWrap"><div id="boardV" style="width:100%;height:100%"></div></div>
   </div>
-  <div class="view tview" id="vValle"></div>
+  <div class="view tview" id="vForme"></div>
   <div class="view tview" id="vPunti"></div>
 </div>
 <div id="hand"></div>
 
 <div class="ovl" id="passOvl">
   <h2 id="passName"></h2>
-  <p>Prendi il dispositivo. La tua mano è nascosta.</p>
+  <p>Prendi il dispositivo. La tua mano è nascosta agli altri.</p>
   <button class="btn gold" id="startBtn">Inizia il turno</button>
-</div>
-<div class="ovl" id="valleOvl">
-  <h2>La Valle ti chiama</h2>
-  <p id="valleOvlTxt"></p>
-  <div id="valleOvlCard" style="background:var(--panel2);border-radius:10px;padding:10px;margin:4px 0"></div>
-  <button class="btn gold" id="playValleBtn">Gioca nella Valle</button>
-  <button class="btn warn" id="discardValleBtn">Scarta e sposta</button>
-  <button class="btn" id="cancelValleBtn">Annulla</button>
 </div>
 <div class="ovl" id="closureOvl" style="justify-content:flex-start;padding-top:30px">
   <h2>🎉 Bioma chiuso!</h2>
@@ -172,72 +146,68 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 <script src="firebase-config.js"></script>
 <script>
 'use strict';
-/* ============ COSTANTI ============ */
+/* ===== COSTANTI ===== */
 const TCOL={selva:'#3F6B4B',pascolo:'#A9B35A',torrente:'#5E9EC4',borgo:'#B5795B'};
 const TNAME={selva:'Selva',pascolo:'Pascolo',torrente:'Torrente',borgo:'Borgo'};
-const GICON={fauno:'🦌',gregge:'🐑',pellegrino:'🚶',monaco:'🔔'};
+const TEMOJI={selva:'🌲',pascolo:'🌿',torrente:'💧',borgo:'🏛️'};
 const DIRS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
-const HAND_SIZE=4, END_TILES=15;
+const HAND_SIZE=5, ROUNDS=20;
 
-/* forme obiettivo Valle: array di delta-coordinate relative alla prima tessera
-   ogni forma è canonicalizzata nella funzione matchShape */
+/* ===== FORME OBIETTIVO =====
+   Ogni forma: nome, pts base, cells (coord axial relative), bonus +1 per Faùno nel gruppo */
 const SHAPES={
   torrente:[
-    {name:'3 in fila',pts:2,cells:[[0,0],[1,0],[2,0]]},
-    {name:'Curva',pts:3,cells:[[0,0],[1,0],[1,1]]},
-    {name:'4 in fila',pts:3,cells:[[0,0],[1,0],[2,0],[3,0]]},
-    {name:'L (4)',pts:5,cells:[[0,0],[1,0],[2,0],[2,1]]},
-    {name:'Delta (4)',pts:7,cells:[[0,0],[1,0],[0,1],[-1,1]]},
+    {name:'3 in fila',        pts:2, cells:[[0,0],[1,0],[2,0]]},
+    {name:'Curva dolce',      pts:3, cells:[[0,0],[1,0],[1,1]]},
+    {name:'4 in fila',        pts:4, cells:[[0,0],[1,0],[2,0],[3,0]]},
+    {name:'Ansa (S)',         pts:5, cells:[[0,0],[1,0],[1,1],[2,1]]},
+    {name:'L ampia',          pts:6, cells:[[0,0],[1,0],[2,0],[2,1],[2,2]]},
+    {name:'Delta (Y)',        pts:8, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
+    {name:'Meandro (6)',      pts:11,cells:[[0,0],[1,0],[2,0],[2,1],[1,1],[0,1]]},
   ],
   selva:[
-    {name:'3 adiacenti',pts:2,cells:[[0,0],[1,0],[0,1]]},
-    {name:'4 a L',pts:4,cells:[[0,0],[1,0],[2,0],[0,1]]},
-    {name:'4 a rombo',pts:5,cells:[[0,0],[1,0],[0,1],[1,-1]]},
-    {name:'7 esagono',pts:12,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
+    {name:'Coppia',           pts:2, cells:[[0,0],[1,0]]},
+    {name:'Triangolo',        pts:3, cells:[[0,0],[1,0],[0,1]]},
+    {name:'4 a L',            pts:5, cells:[[0,0],[1,0],[2,0],[0,1]]},
+    {name:'4 a rombo',        pts:6, cells:[[0,0],[1,0],[0,1],[1,-1]]},
+    {name:'Freccia (5)',      pts:8, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
+    {name:'Alveare (7)',      pts:14,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
   ],
   pascolo:[
-    {name:'3 adiacenti',pts:2,cells:[[0,0],[1,0],[0,1]]},
-    {name:'4 zig-zag',pts:4,cells:[[0,0],[1,0],[1,1],[2,1]]},
-    {name:'Croce (5)',pts:8,cells:[[0,0],[1,0],[-1,1],[0,1],[0,-1]]},
+    {name:'Coppia',           pts:2, cells:[[0,0],[1,0]]},
+    {name:'3 adiacenti',      pts:3, cells:[[0,0],[1,0],[0,1]]},
+    {name:'Striscia 4',       pts:4, cells:[[0,0],[1,0],[1,1],[2,1]]},
+    {name:'Croce piccola (4)',pts:6, cells:[[0,0],[1,0],[-1,1],[0,-1]]},
+    {name:'Croce grande (5)', pts:9, cells:[[0,0],[1,0],[-1,1],[0,1],[0,-1]]},
+    {name:'Fiore (7)',        pts:13,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
   ],
   borgo:[
-    {name:'2 adiacenti',pts:2,cells:[[0,0],[1,0]]},
-    {name:'Triangolo (3)',pts:5,cells:[[0,0],[1,0],[0,1]]},
-    {name:'Losanga (4)',pts:9,cells:[[0,0],[1,0],[0,1],[1,-1]]},
+    {name:'2 adiacenti',      pts:3, cells:[[0,0],[1,0]]},
+    {name:'Triangolo',        pts:6, cells:[[0,0],[1,0],[0,1]]},
+    {name:'Quadrato (4)',     pts:10,cells:[[0,0],[1,0],[0,1],[1,-1]]},
+    {name:'Torre (5)',        pts:15,cells:[[0,0],[1,0],[0,1],[1,-1],[0,-1]]},
   ],
 };
 
-/* ============ MAZZO ============ */
+/* ===== MAZZO ===== */
 let tid=0;
-const mk=(edges,guest)=>({id:++tid,edges:edges.slice(),guest:guest||null,covered:false});
-function many(n,e,gN,g){const a=[];for(let i=0;i<n;i++)a.push(mk(e,i<gN?g:null));return a}
-const S_='selva',P_='pascolo',T_='torrente',B_='borgo';
-
-function buildPratoDeck(){
-  let d=[];
-  d=d.concat(
-    many(17,[S_,S_,S_,S_,S_,S_],6,'fauno'),many(17,[P_,P_,P_,P_,P_,P_],3,'gregge'),
-    many(15,[T_,T_,T_,T_,T_,T_],4,'pellegrino'),many(15,[B_,B_,B_,B_,B_,B_],3,'monaco'),
-    many(11,[S_,S_,S_,P_,P_,P_],4,'fauno'),many(11,[T_,T_,T_,P_,P_,P_],3,'pellegrino'),
-    many(10,[S_,S_,S_,T_,T_,T_],4,'fauno'),many(9,[B_,B_,B_,P_,P_,P_],3,'gregge'),
-    many(8,[B_,B_,B_,T_,T_,T_],2,'pellegrino'),
-    many(8,[S_,S_,P_,P_,T_,T_],3,'fauno'),many(6,[B_,B_,P_,P_,T_,T_],2,'gregge'),
-    many(5,[S_,S_,B_,B_,P_,P_],3,'monaco'));
-  return shuffle(d);
-}
-function buildValleDeck(){
-  let d=[];
-  d=d.concat(
-    many(20,[S_,S_,S_,S_,S_,S_],0),many(20,[P_,P_,P_,P_,P_,P_],0),
-    many(18,[T_,T_,T_,T_,T_,T_],0),many(18,[B_,B_,B_,B_,B_,B_],0),
-    many(10,[S_,S_,S_,P_,P_,P_],0),many(10,[T_,T_,T_,P_,P_,P_],0),
-    many(8,[S_,S_,S_,T_,T_,T_],0),many(8,[B_,B_,B_,P_,P_,P_],0),
-    many(6,[B_,B_,B_,T_,T_,T_],0),many(6,[S_,S_,P_,P_,T_,T_],0));
-  return shuffle(d);
-}
+const mk=(e,g)=>({id:++tid,edges:e.slice(),guest:g||null,covered:false});
+function many(n,e,gN){const a=[];for(let i=0;i<n;i++)a.push(mk(e,i<gN?'fauno':null));return a}
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
+const S_='selva',P_='pascolo',T_='torrente',B_='borgo';
+function buildDeck(){
+  let d=[];
+  d=d.concat(
+    many(18,[S_,S_,S_,S_,S_,S_],7),many(18,[P_,P_,P_,P_,P_,P_],5),
+    many(16,[T_,T_,T_,T_,T_,T_],6),many(16,[B_,B_,B_,B_,B_,B_],4),
+    many(12,[S_,S_,S_,P_,P_,P_],3),many(12,[T_,T_,T_,P_,P_,P_],3),
+    many(10,[S_,S_,S_,T_,T_,T_],3),many(10,[B_,B_,B_,P_,P_,P_],2),
+    many(8,[B_,B_,B_,T_,T_,T_],2),many(8,[S_,S_,P_,P_,T_,T_],2),
+    many(6,[S_,S_,B_,B_,P_,P_],1));
+  return shuffle(d);
+}
 
-/* ============ GEOMETRIA ============ */
+/* ===== GEOMETRIA ===== */
 const key=(q,r)=>q+','+r;
 function runsOf(e){
   if(new Set(e).size===1)return{runs:[{t:e[0],edges:[0,1,2,3,4,5]}],edgeRun:[0,0,0,0,0,0]};
@@ -250,185 +220,107 @@ function runsOf(e){
   return{runs,edgeRun:er};
 }
 const R=t=>t._r||(t._r=runsOf(t.edges));
-function components(board){
-  const par={},meta={};
-  const find=x=>{while(par[x]!==x){par[x]=par[par[x]];x=par[x]}return x};
-  const uni=(a,b)=>{a=find(a);b=find(b);if(a!==b)par[a]=b};
-  for(const[k,t]of board)R(t).runs.forEach((r,ri)=>{const id=k+'#'+ri;par[id]=id;meta[id]=r.t});
-  for(const[k,t]of board){const[q,r]=k.split(',').map(Number);const er=R(t).edgeRun;
-    for(let i=0;i<6;i++){const nk=key(q+DIRS[i][0],r+DIRS[i][1]);const nt=board.get(nk);
-      if(nt&&t.edges[i]===nt.edges[(i+3)%6])uni(k+'#'+er[i],nk+'#'+R(nt).edgeRun[(i+3)%6])}}
-  const byRoot=new Map();
-  for(const id in par){const ro=find(id);
-    if(!byRoot.has(ro))byRoot.set(ro,{t:meta[id],n:0,keys:[]});
-    const e=byRoot.get(ro);e.n++;e.keys.push(id.split('#')[0]);}
-  return{list:[...byRoot.values()],get:id=>byRoot.get(find(id))};
-}
 
-/* ============ RILEVAMENTO FORME ============ */
-/* normalizza un insieme di coordinate sottraendo il min */
-function normCells(cells){
-  const minQ=Math.min(...cells.map(c=>c[0]));
-  const minR=Math.min(...cells.map(c=>c[1]));
-  return cells.map(([q,r])=>[q-minQ,r-minR]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-}
-/* 6 rotazioni sull'esagono */
+/* ===== RILEVAMENTO FORME ===== */
 function rotCell([q,r]){return[-r,q+r]}
-function rotShape(cells){return cells.map(rotCell)}
-/* canonicalizza: tutte le 6 rotazioni, prendi il più piccolo lessicograficamente */
+function normCells(cells){
+  const mq=Math.min(...cells.map(c=>c[0])),mr=Math.min(...cells.map(c=>c[1]));
+  return cells.map(([q,r])=>[q-mq,r-mr]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+}
 function canonical(cells){
   let best=null,cur=cells;
-  for(let i=0;i<6;i++){
-    const n=normCells(cur);const s=JSON.stringify(n);
-    if(!best||s<best.s){best={s,n}}
-    cur=rotShape(cur);
-  }
-  return best.s;
+  for(let i=0;i<6;i++){const s=JSON.stringify(normCells(cur));if(!best||s<best){best=s}cur=cur.map(rotCell)}
+  return best;
 }
-/* precalcola le forme canoniche */
-const SHAPE_CANONICAL={};
-for(const[terr,shapes]of Object.entries(SHAPES)){
-  SHAPE_CANONICAL[terr]=shapes.map(sh=>({...sh,canon:canonical(sh.cells)}));
-}
+const SHAPE_CANON={};
+for(const[t,shapes]of Object.entries(SHAPES))
+  SHAPE_CANON[t]=shapes.map(sh=>({...sh,canon:canonical(sh.cells)}));
 
-function checkClosures(valley){
-  /* raggruppa le tessere non chiuse per terreno */
-  const groups={selva:[],pascolo:[],torrente:[],borgo:[]};
-  for(const[k,t]of valley){
-    if(t.covered)continue;
-    const[q,r]=k.split(',').map(Number);
-    /* considera solo il terreno dominante (celle pure) o ogni run */
-    const dominant=t.edges[0]; /* tessere Valle sono pure */
-    if(groups[dominant])groups[dominant].push([q,r]);
-  }
-  const found=[];
-  for(const[terr,cells]of Object.entries(groups)){
-    if(!cells.length)continue;
-    /* trova tutti i gruppi connessi di questo terreno */
-    const connGroups=connectedGroups(cells);
-    for(const grp of connGroups){
-      if(grp.length<2)continue;
-      const c=canonical(grp);
-      let best=null;
-      for(const sh of SHAPE_CANONICAL[terr]){
-        if(sh.canon===c){if(!best||sh.pts>best.pts)best=sh}
-      }
-      if(best)found.push({terr,shape:best,cells:grp});
-    }
-  }
-  return found;
-}
-function connectedGroups(cells){
+function connGroups(cells){
   const map=new Map(cells.map(c=>[key(c[0],c[1]),c]));
-  const visited=new Set();const groups=[];
+  const vis=new Set();const groups=[];
   for(const[k,c]of map){
-    if(visited.has(k))continue;
-    const grp=[],q=[c];visited.add(k);
+    if(vis.has(k))continue;
+    const grp=[],q=[c];vis.add(k);
     while(q.length){const[cq,cr]=q.shift();grp.push([cq,cr]);
       for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
-        if(map.has(nk)&&!visited.has(nk)){visited.add(nk);q.push(map.get(nk))}}}
+        if(map.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(map.get(nk))}}}
     groups.push(grp);
   }
   return groups;
 }
 
-/* ============ PUNTEGGIO PRATO ============ */
-function pratoScore(board,terr){
-  const C=components(board);
-  let best=null;
-  for(const g of C.list){
-    if(g.t!==terr)continue;
-    if(!best||g.n>best.n)best=g;
+function checkClosures(valley){
+  const byTerr={selva:[],pascolo:[],torrente:[],borgo:[]};
+  for(const[k,t]of valley){
+    if(t.covered)continue;
+    const[q,r]=k.split(',').map(Number);
+    const dom=t.edges[0];
+    if(byTerr[dom])byTerr[dom].push([q,r]);
   }
-  if(!best)return{pts:0,tiles:0,faunos:0};
-  let faunos=0;
-  for(const k of best.keys){const t=board.get(k);if(t&&t.guest==='fauno'&&!t.covered)faunos++}
-  return{pts:best.n+faunos,tiles:best.n,faunos};
-}
-
-/* ============ CLASSIFICA VALLE ============ */
-function valleRanking(players,terr,np){
-  const scores=players.map(p=>pratoScore(p.prato,terr).tiles);
-  const sorted=[...scores].sort((a,b)=>b-a);
-  const results=players.map((_,i)=>({rank:0,gets:false}));
-  /* assegna rank */
-  scores.forEach((s,i)=>{results[i].rank=sorted.indexOf(s)+1});
-  if(np===2){
-    const [a,b]=scores;
-    if(a!==b)results[scores.indexOf(Math.max(a,b))].gets=true;
-  }else if(np===3){
-    const top2=sorted.slice(0,2);
-    scores.forEach((s,i)=>{
-      if(s===top2[0]&&scores.filter(x=>x===top2[0]).length===1)results[i].gets=true;
-      else if(s===top2[1]&&top2[0]!==top2[1]&&scores.filter(x=>x===top2[1]).length===1)results[i].gets=true;
-    });
-  }else{
-    /* 4 giocatori */
-    const top=sorted[0],sec=sorted[1];
-    const topCount=scores.filter(x=>x===top).length;
-    const secCount=scores.filter(x=>x===sec).length;
-    if(topCount>=3){/* 3 pari al 1° */
-      scores.forEach((s,i)=>{if(s===top)results[i].gets=true});
-    }else if(topCount===2){scores.forEach((s,i)=>{if(s===top)results[i].gets=true});
-    }else{/* 1 solo al top */
-      scores.forEach((s,i)=>{if(s===top)results[i].gets=true;
-        else if(s===sec&&secCount===1)results[i].gets=true;});
+  const found=[];
+  for(const[terr,cells]of Object.entries(byTerr)){
+    for(const grp of connGroups(cells)){
+      if(grp.length<2)continue;
+      const c=canonical(grp);
+      let best=null;
+      for(const sh of SHAPE_CANON[terr])
+        if(sh.canon===c&&(!best||sh.pts>best.pts))best=sh;
+      if(best){
+        /* conta fauni nel gruppo */
+        let faunos=0;
+        grp.forEach(([q,r])=>{const t=valley.get(key(q,r));if(t&&t.guest==='fauno')faunos++});
+        found.push({terr,shape:best,cells:grp,faunos});
+      }
     }
   }
-  return results;
+  return found;
 }
 
-/* ============ SCIVOLAMENTO REGINA ============ */
+/* ===== SCIVOLAMENTO REGINA ===== */
 function canSlide(valley,fromKey,toKey){
   const[fq,fr]=fromKey.split(',').map(Number);
   const[tq,tr]=toKey.split(',').map(Number);
-  /* deve essere adiacente */
-  const isAdj=DIRS.some(([dq,dr])=>fq+dq===tq&&fr+dr===tr);
-  if(!isAdj)return false;
-  /* casella destinazione libera */
+  if(!DIRS.some(([dq,dr])=>fq+dq===tq&&fr+dr===tr))return false;
   if(valley.has(toKey))return false;
-  /* tessera destinazione non chiusa */
   if(valley.get(fromKey)?.covered)return false;
-  /* freedom to move: i due esagoni condivisi tra from e to devono non essere entrambi occupati */
-  const shared=DIRS.filter(([dq,dr])=>{
-    const nk=key(fq+dq,fr+dr);
-    return DIRS.some(([d2q,d2r])=>tq+d2q===fq+dq&&tr+d2r===fr+dr)&&nk!==fromKey&&nk!==toKey;
-  }).map(([dq,dr])=>key(fq+dq,fr+dr));
-  if(shared.length===2&&valley.has(shared[0])&&valley.has(shared[1]))return false;
-  /* valley resta connessa dopo la mossa */
+  /* freedom to move */
+  const shared=[];
+  for(const[dq,dr]of DIRS){
+    const nk=key(fq+dq,fr+dr);if(nk===toKey)continue;
+    if(DIRS.some(([d2,d3])=>key(tq+d2,tr+d3)===nk))shared.push(nk);
+  }
+  if(shared.length>=2&&shared.every(k=>valley.has(k)))return false;
+  /* valley connessa */
   const test=new Map(valley);test.delete(fromKey);
   if(test.size===0)return true;
   const start=[...test.keys()][0];
-  const visited=new Set([start]);const q=[start];
+  const vis=new Set([start]);const q=[start];
   while(q.length){const k=q.shift();const[cq,cr]=k.split(',').map(Number);
     for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
-      if(test.has(nk)&&!visited.has(nk)){visited.add(nk);q.push(nk)}}}
-  if(visited.size!==test.size)return false;
-  /* deve restare adiacente alla valley dopo lo spostamento */
+      if(test.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(nk)}}}
+  if(vis.size!==test.size)return false;
+  /* resta adiacente */
   const[q2,r2]=toKey.split(',').map(Number);
-  return DIRS.some(([dq,dr])=>valley.has(key(q2+dq,r2+dr))&&key(q2+dq,r2+dr)!==fromKey);
+  return DIRS.some(([dq,dr])=>{const nk=key(q2+dq,r2+dr);return valley.has(nk)&&nk!==fromKey});
 }
-function slideCandidates(valley,fromKey){
+function slideCands(valley,fromKey){
   const[fq,fr]=fromKey.split(',').map(Number);
   return DIRS.map(([dq,dr])=>key(fq+dq,fr+dr)).filter(nk=>canSlide(valley,fromKey,nk));
 }
 
-/* ============ STATO ============ */
+/* ===== STATO ===== */
 let S=null,MODE='local';
-let SEL_PRATO=0,VALLE_TILE=null,SLIDE_FROM=null,VIEW='plance';
-const NET={db:null,code:null,ref:null,mySeat:null,clientId:null,unsub:null,status:null,seats:null};
+let SEL=0,MODE_ACTION='place',SLIDE_FROM=null;
+const NET={db:null,code:null,ref:null,mySeat:null,clientId:null,unsub:null,seats:null};
 
 function newGame(np){
-  const pratoDeck=buildPratoDeck();
-  const valleDeck=buildValleDeck();
-  const st={np,pratoDeck,valleDeck,valleDiscard:[],
-    valley:new Map(),players:[],
-    round:1,seat:0,phase:'pass',pendingClosures:[],log:[]};
-  st.valley.set(key(0,0),valleDeck.pop());
+  const deck=buildDeck();
+  const st={np,deck,valley:new Map(),players:[],round:1,seat:0,phase:'pass',pending:[],log:[]};
+  st.valley.set(key(0,0),deck.pop());
   for(let i=0;i<np;i++){
-    const p={name:'Giocatore '+(i+1),prato:new Map(),hand:[],score:0,tilesPlayed:0};
-    p.prato.set(key(20+i*3,0),pratoDeck.pop());
-    for(let j=0;j<HAND_SIZE;j++)p.hand.push(pratoDeck.pop());
+    const p={name:'Giocatore '+(i+1),hand:[],score:0};
+    for(let j=0;j<HAND_SIZE;j++)p.hand.push(deck.pop());
     st.players.push(p);
   }
   return st;
@@ -438,46 +330,40 @@ const curP=()=>S.players[curIdx()];
 const isMyTurn=()=>MODE==='local'||NET.mySeat===curIdx();
 const me=()=>MODE==='local'?curP():S.players[NET.mySeat];
 
-/* ============ SERIALIZZAZIONE ============ */
-const ct=t=>({i:t.id,e:t.edges,g:t.guest||null,c:t.covered});
+/* ===== SERIALIZZAZIONE ===== */
+const ct=t=>({i:t.id,e:t.edges,g:t.guest||null,c:t.covered||false});
 const ut=o=>({id:o.i,edges:o.e,guest:o.g||null,covered:o.c||false});
 function ser(){
-  const cp=p=>({name:p.name,score:p.score,tilesPlayed:p.tilesPlayed,
-    hand:p.hand.map(ct),prato:[...p.prato].map(([k,t])=>[k,ct(t)])});
+  const cp=p=>({name:p.name,score:p.score,hand:p.hand.map(ct)});
   return JSON.stringify({np:S.np,round:S.round,seat:S.seat,phase:S.phase,
-    pratoDeck:S.pratoDeck.map(ct),valleDeck:S.valleDeck.map(ct),
-    valley:[...S.valley].map(([k,t])=>[k,ct(t)]),
+    deck:S.deck.map(ct),valley:[...S.valley].map(([k,t])=>[k,ct(t)]),
     players:S.players.map(cp),log:S.log});
 }
 function deser(str){
   const d=JSON.parse(str);
-  return{np:d.np,round:d.round,seat:d.seat,phase:d.phase,pendingClosures:[],
-    pratoDeck:d.pratoDeck.map(ut),valleDeck:d.valleDeck.map(ut),
-    valley:new Map(d.valley.map(([k,t])=>[k,ut(t)])),
-    players:d.players.map(p=>({name:p.name,score:p.score,tilesPlayed:p.tilesPlayed,
-      hand:p.hand.map(ut),prato:new Map(p.prato.map(([k,t])=>[k,ut(t)]))})),
+  return{np:d.np,round:d.round,seat:d.seat,phase:d.phase,pending:[],
+    deck:d.deck.map(ut),valley:new Map(d.valley.map(([k,t])=>[k,ut(t)])),
+    players:d.players.map(p=>({name:p.name,score:p.score,hand:p.hand.map(ut)})),
     log:d.log};
 }
-function sync(status){
+function sync(st){
   if(MODE!=='online')return;
-  NET.ref.set({state:ser(),status:status||'playing'},{merge:true}).catch(e=>toast('Rete: '+e.message));
+  NET.ref.set({state:ser(),status:st||'playing'},{merge:true}).catch(e=>toast('Rete: '+e.message));
 }
 
-/* ============ RETE ============ */
+/* ===== RETE ===== */
 function cid(){let c=sessionStorage.getItem('rf_cid');if(!c){c=Math.random().toString(36).slice(2,10);sessionStorage.setItem('rf_cid',c)}return c}
 function initFb(){
   if(NET.db)return true;
   if(typeof firebase==='undefined'||typeof FB_CONFIG==='undefined'||String(FB_CONFIG.apiKey).startsWith('INCOLLA'))
-    {$('setupErr').textContent='Configura firebase-config.js per il gioco online.';return false}
+    {$('setupErr').textContent='Configura firebase-config.js.';return false}
   firebase.initializeApp(FB_CONFIG);NET.db=firebase.firestore();NET.clientId=cid();return true;
 }
 function roomCode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<5;i++)c+=A[Math.floor(Math.random()*A.length)];return c}
 function createRoom(np){
-  if(!initFb())return;
-  MODE='online';S=newGame(np);
+  if(!initFb())return;MODE='online';S=newGame(np);
   NET.code=roomCode();NET.mySeat=0;NET.ref=NET.db.collection('rooms').doc(NET.code);
-  const nm=(prompt('Il tuo nome?','Giocatore 1')||'G1').slice(0,14);
-  S.players[0].name=nm;
+  const nm=(prompt('Il tuo nome?','Giocatore 1')||'G1').slice(0,14);S.players[0].name=nm;
   NET.ref.set({np,status:'waiting',seats:{0:NET.clientId},created:Date.now(),state:ser()})
     .then(()=>listen()).catch(e=>$('setupErr').textContent='Errore: '+e.message);
 }
@@ -502,7 +388,7 @@ function listen(){
   if(NET.unsub)NET.unsub();
   NET.unsub=NET.ref.onSnapshot(snap=>{
     if(!snap.exists)return;
-    const d=snap.data();NET.status=d.status;NET.seats=d.seats||{};
+    const d=snap.data();NET.seats=d.seats||{};
     const wasMy=S&&NET.mySeat!==null&&NET.mySeat===curIdx();
     if(d.state)S=deser(d.state);
     const nowMy=NET.mySeat!==null&&NET.mySeat===curIdx();
@@ -514,175 +400,123 @@ function listen(){
       show('lobbyOvl');
     }else{hide('lobbyOvl');$('setup').style.display='none';
       if(d.status==='done'){buildEnd();show('endOvl')}else render()}
-  },e=>toast('Connessione: '+e.message));
+  },e=>toast('Conn: '+e.message));
 }
 
-/* ============ FLUSSO ============ */
-function newLocal(np){MODE='local';S=newGame(np);S.phase='pass';$('setup').style.display='none';showPass()}
-function showPass(){S.phase='pass';$('passName').textContent=curP().name;show('passOvl');render()}
-function startTurn(){hide('passOvl');S.phase='prato';SEL_PRATO=0;render()}
+/* ===== FLUSSO ===== */
+function newLocal(np){MODE='local';S=newGame(np);$('setup').style.display='none';showPass()}
+function showPass(){S.phase='pass';SLIDE_FROM=null;MODE_ACTION='place';$('passName').textContent=curP().name;show('passOvl');render()}
+function startTurn(){hide('passOvl');S.phase='play';SEL=0;MODE_ACTION='place';SLIDE_FROM=null;render()}
 
-/* PRATO: piazza tessera */
-function placePrato(q,r){
-  if(!isMyTurn()||S.phase!=='prato')return;
-  const p=curP();const tile=p.hand[SEL_PRATO];if(!tile)return;
-  const tgt=p.prato;
-  if(tgt.has(key(q,r)))return;
-  if(tgt.size&&!DIRS.some(([dq,dr])=>tgt.has(key(q+dq,r+dr))))return;
-  delete tile._r;tgt.set(key(q,r),tile);
-  p.hand.splice(SEL_PRATO,1);SEL_PRATO=0;
-  p.tilesPlayed++;
-  /* pesca subito */
-  if(S.pratoDeck.length)p.hand.push(S.pratoDeck.pop());
-  S.phase='valle_draw';
-  sync();render();
-}
-
-/* VALLE: fase draw */
-function drawValle(){
-  if(!isMyTurn()||S.phase!=='valle_draw')return;
-  if(!S.valleDeck.length){skipValle();return}
-  VALLE_TILE=S.valleDeck.pop();
-  $('valleOvlTxt').textContent=curP().name+' · guarda la tessera in segreto e decidi.';
-  $('valleOvlCard').innerHTML=miniTile(VALLE_TILE)+'<span style="font-size:11px;color:var(--ink2);margin-left:8px;vertical-align:middle">'+terrainLabel(VALLE_TILE)+'</span>';
-  show('valleOvl');
-}
-function terrainLabel(t){
-  const dominant=t.edges[0];return TNAME[dominant]||''}
-
-/* gioca la tessera Valle */
-function playValle(){
-  hide('valleOvl');
-  S.phase='valle_place';
-  render();
-}
-/* scarta e sposta */
-function discardValle(){
-  hide('valleOvl');
-  S.valleDiscard=S.valleDiscard||[];
-  S.valleDiscard.push(VALLE_TILE);VALLE_TILE=null;
-  S.phase='valle_slide';
-  SLIDE_FROM=null;
-  render();
-  toast('Scegli la tessera da spostare');
-}
-function cancelValle(){
-  /* rimette la tessera in cima */
-  if(VALLE_TILE){S.valleDeck.push(VALLE_TILE);VALLE_TILE=null}
-  hide('valleOvl');render();
-}
-function skipValle(){S.phase='valle_done';afterValle()}
-
-/* piazza in Valle */
-function placeValle(q,r){
-  if(!isMyTurn()||S.phase!=='valle_place')return;
+function placeAt(q,r){
+  if(!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='place')return;
+  const p=curP();const tile=p.hand[SEL];if(!tile)return;
   if(S.valley.has(key(q,r)))return;
   if(S.valley.size&&!DIRS.some(([dq,dr])=>S.valley.has(key(q+dq,r+dr))))return;
-  const tile=VALLE_TILE;if(!tile)return;
-  delete tile._r;S.valley.set(key(q,r),tile);VALLE_TILE=null;
-  S.phase='valle_done';
-  checkAndResolve();
+  delete tile._r;S.valley.set(key(q,r),tile);
+  p.hand.splice(SEL,1);SEL=0;
+  if(S.deck.length)p.hand.push(S.deck.pop());
+  S.phase='done';
+  resolveClosures(curIdx());
 }
 
-/* spostamento Regina */
 function selectSlide(fromKey){
-  if(!isMyTurn()||S.phase!=='valle_slide')return;
+  if(!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='slide')return;
   const t=S.valley.get(fromKey);if(!t||t.covered)return;
+  if(slideCands(S.valley,fromKey).length===0){toast('Questa tessera non può muoversi');return}
   SLIDE_FROM=fromKey;render();
 }
 function executeSlide(toKey){
-  if(!isMyTurn()||S.phase!=='valle_slide'||!SLIDE_FROM)return;
+  if(!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='slide'||!SLIDE_FROM)return;
   if(!canSlide(S.valley,SLIDE_FROM,toKey))return;
   const tile=S.valley.get(SLIDE_FROM);
   S.valley.delete(SLIDE_FROM);S.valley.set(toKey,tile);
-  SLIDE_FROM=null;S.phase='valle_done';
-  checkAndResolve();
+  SLIDE_FROM=null;S.phase='done';
+  resolveClosures(curIdx());
 }
 
-/* controlla chiusure e risolvi */
-function checkAndResolve(){
+function resolveClosures(closerIdx){
   const closures=checkClosures(S.valley);
-  if(closures.length){
-    S.pendingClosures=closures;
-    resolveNextClosure();
-  }else{afterValle()}
+  if(closures.length){S.pending=closures;showNextClosure(closerIdx);}
+  else afterAction();
 }
-function resolveNextClosure(){
-  if(!S.pendingClosures.length){afterValle();return}
-  const cl=S.pendingClosures.shift();
-  /* copri le tessere */
+function showNextClosure(closerIdx){
+  if(!S.pending.length){afterAction();return}
+  const cl=S.pending.shift();
+  const pts=cl.shape.pts+cl.faunos;
+  S.players[closerIdx].score+=pts;
   cl.cells.forEach(([q,r])=>{const t=S.valley.get(key(q,r));if(t)t.covered=true});
-  /* calcola punteggi */
-  const ranking=valleRanking(S.players,cl.terr,S.np);
-  S.players.forEach((p,i)=>{
-    const ps=pratoScore(p.prato,cl.terr);
-    p.score+=ps.pts;
-    if(ranking[i].gets)p.score+=cl.shape.pts;
-  });
-  /* log */
-  S.log.push({terr:cl.terr,shape:cl.shape.name,pts:cl.shape.pts,
-    scores:S.players.map((p,i)=>({name:p.name,prato:pratoScore(p.prato,cl.terr).pts,valle:ranking[i].gets?cl.shape.pts:0}))});
-  /* mostra overlay */
-  let body='<div class="card"><h2>'+TNAME[cl.terr]+' — '+cl.shape.name+'</h2>'
-    +'<div class="d">Pt Valle: '+cl.shape.pts+' (solo i migliori)</div>'
-    +'<div class="shapes">';
-  S.log[S.log.length-1].scores.forEach(s=>{
-    body+='<div class="shape-row"><span>'+s.name+'</span><span>Prato +'+s.prato+(s.valle?' · Valle +'+s.valle:'')+'</span></div>';
-  });
-  body+='</div></div>';
+  S.log.push({by:S.players[closerIdx].name,terr:cl.terr,shape:cl.shape.name,pts,faunos:cl.faunos});
+  let body='<div class="card">'
+    +'<h2>'+TEMOJI[cl.terr]+' '+TNAME[cl.terr]+' — '+cl.shape.name+'</h2>'
+    +'<div class="d">'+S.players[closerIdx].name+' guadagna <b style="color:var(--ocra)">'+pts+' punti</b>'
+    +(cl.faunos?' (inclusi '+cl.faunos+' Faùno 🦌)':'')+'</div>'
+    +'<div style="margin-top:8px;font-size:12px;color:var(--ink2)">Classifica attuale:</div>'
+    +'<div style="margin-top:4px">'+S.players.map(p=>'<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:12px"><span>'+p.name+'</span><b>'+p.score+' pt</b></div>').join('')+'</div>'
+    +'</div>';
   $('closureBody').innerHTML=body;
-  show('closureOvl');
   sync();render();
+  show('closureOvl');
+  // chiusura pendente passa il closerIdx via closure
+  $('closureOk').onclick=()=>{hide('closureOvl');showNextClosure(closerIdx)};
 }
-function afterValle(){
-  S.phase='valle_done';
-  /* prossimo giocatore Valle o fine round */
+function afterAction(){
   S.seat++;
   if(S.seat>=S.np){
-    /* fine round: controlla fine partita */
-    const maxPlayed=Math.max(...S.players.map(p=>p.tilesPlayed));
-    if(maxPlayed>=END_TILES){endGame();return}
+    if(S.round>=ROUNDS){endGame();return}
     S.round++;S.seat=0;
   }
   sync();
-  if(MODE==='local')showPass();else{S.phase='prato';sync();render()}
+  if(MODE==='local')showPass();
+  else{S.phase='play';MODE_ACTION='place';SLIDE_FROM=null;sync();render()}
 }
 function endGame(){
   S.phase='end';sync('done');buildEnd();show('endOvl');
 }
 function buildEnd(){
   const rank=S.players.slice().sort((a,b)=>b.score-a.score);
-  let h='<div class="card"><h2>Classifica finale</h2>'+rank.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:3px 0"><span>'+(i+1)+'. '+p.name+'</span><b>'+p.score+' pt</b></div>').join('')+'</div>';
-  if(S.log.length){h+='<div class="card"><h2>Biomi chiusi</h2>';
-    S.log.forEach(r=>{h+='<div style="padding:3px 0;border-bottom:1px solid var(--line);font-size:11px"><b>'+TNAME[r.terr]+'</b> '+r.shape+' · Valle: '+r.pts+'pt</div>'});
-    h+='</div>'}
+  let h='<div class="card"><h2>Classifica finale</h2>'
+    +rank.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:3px 0"><span>'+(i+1)+'. '+p.name+'</span><b>'+p.score+' pt</b></div>').join('')+'</div>';
+  if(S.log.length){
+    h+='<div class="card"><h2>Biomi chiusi ('+S.log.length+')</h2>';
+    S.log.forEach(r=>{h+='<div style="padding:3px 0;border-bottom:1px solid var(--line);font-size:11px">'
+      +TEMOJI[r.terr]+' <b>'+r.shape+'</b> · '+r.pts+'pt → '+r.by+'</div>'});
+    h+='</div>';
+  }
   $('endBody').innerHTML=h;
 }
 
-/* ============ RENDERING ============ */
+/* ===== RENDERING ===== */
 const $=id=>document.getElementById(id);
 const show=id=>$(id).classList.add('on');
 const hide=id=>$(id).classList.remove('on');
 function toast(msg){const t=$('toast');t.textContent=msg;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,2400)}
 function hexPts(cx,cy,s){const p=[];for(let k=0;k<6;k++){const a=Math.PI/180*(60*k-30);p.push([cx+s*Math.cos(a),cy+s*Math.sin(a)])}return p}
-function tileSVG(tile,cx,cy,s,highlight){
+function tileSVG(tile,cx,cy,s,hilite){
   const c=hexPts(cx,cy,s);let g='';
+  if(tile.covered){
+    for(let i=0;i<6;i++){const p1=c[i],p2=c[(i+1)%6];
+      g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="#2a2f25" stroke="#2a2f25" stroke-width=".5"/>'}
+    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+TCOL[tile.edges[0]]+'" stroke-width="2"/>';
+    g+='<text x="'+cx+'" y="'+(cy+s*.2)+'" font-size="'+(s*.55)+'" text-anchor="middle">'+TEMOJI[tile.edges[0]]+'</text>';
+    return g;
+  }
   for(let i=0;i<6;i++){const p1=c[i],p2=c[(i+1)%6];
-    g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="'+(tile.covered?'#2a2f25':TCOL[tile.edges[i]])+'" stroke="'+(tile.covered?'#2a2f25':TCOL[tile.edges[i]])+'" stroke-width=".5"/>'}
-  const stroke=highlight?'#D9A441':tile.covered?'#D9A441':'#1c1f19';
-  const sw=highlight||tile.covered?2.5:1.6;
-  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
-  if(tile.covered){g+='<text x="'+cx+'" y="'+(cy+s*.2)+'" font-size="'+(s*.6)+'" text-anchor="middle">'+({selva:'🌲',pascolo:'🌿',torrente:'💧',borgo:'🏛️'}[tile.edges[0]]||'✓')+'</text>'}
-  else if(tile.guest){
-    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.42)+'" fill="rgba(20,22,17,.72)"/>';
-    g+='<text x="'+cx+'" y="'+(cy+s*.16)+'" font-size="'+(s*.5)+'" text-anchor="middle">'+GICON[tile.guest]+'</text>';
+    g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="'+TCOL[tile.edges[i]]+'" stroke="'+TCOL[tile.edges[i]]+'" stroke-width=".5"/>'}
+  const sc=hilite?'#D9A441':'#1c1f19',sw=hilite?2.8:1.6;
+  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+sc+'" stroke-width="'+sw+'"/>';
+  if(tile.guest==='fauno'){
+    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.38)+'" fill="rgba(20,22,17,.75)"/>';
+    g+='<text x="'+cx+'" y="'+(cy+s*.14)+'" font-size="'+(s*.46)+'" text-anchor="middle">🦌</text>';
   }
   return g;
 }
 function miniTile(tile){
-  const s=22;return '<svg width="'+(s*2)+'" height="'+(s*2)+'" viewBox="'+(-s*1.05)+' '+(-s*1.05)+' '+(s*2.1)+' '+(s*2.1)+'">'+tileSVG(tile,0,0,s)+'</svg>';
+  const s=22;
+  return '<svg width="'+(s*2)+'" height="'+(s*2)+'" viewBox="'+(-s*1.1)+' '+(-s*1.1)+' '+(s*2.2)+' '+(s*2.2)+'">'+tileSVG(tile,0,0,s,false)+'</svg>';
 }
 
+/* BMETA per hit-test */
 const BMETA={};
 function axialRound(qf,rf){
   let sf=-qf-rf,q=Math.round(qf),r=Math.round(rf),s2=Math.round(sf);
@@ -692,7 +526,7 @@ function axialRound(qf,rf){
 function hitHex(elId,cx,cy){
   const m=BMETA[elId];if(!m)return null;
   const el=$(elId);const svg=el&&el.querySelector('svg');if(!svg)return null;
-  const rect=svg.getBoundingClientRect();if(!rect.width||!rect.height)return null;
+  const rect=svg.getBoundingClientRect();if(!rect.width)return null;
   const[vx,vy,vw,vh]=m.vb;const sc=Math.min(rect.width/vw,rect.height/vh);
   const ox=(rect.width-vw*sc)/2,oy=(rect.height-vh*sc)/2;
   const px=(cx-rect.left-ox)/sc+vx,py=(cy-rect.top-oy)/sc+vy;
@@ -703,127 +537,100 @@ function hitHex(elId,cx,cy){
   return null;
 }
 
-function renderBoard(elId,board,interactive,interactType){
-  const el=$(elId);if(!el)return;
-  const s=30;const cells=[...board.keys()].map(k=>k.split(',').map(Number));
-  const seen=new Set(board.keys());const cands=[];
-  if(interactive&&interactType==='place'){
-    for(const[q,r]of cells)for(const[dq,dr]of DIRS){const nk=key(q+dq,r+dr);
-      if(!seen.has(nk)){seen.add(nk);cands.push([q+dq,r+dr])}}
-  }
-  const all=cells.concat(cands);
-  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+function renderBoard(){
+  const el=$('boardV');if(!el)return;
+  const s=30,valley=S.valley;
+  const cells=[...valley.keys()].map(k=>k.split(',').map(Number));
+  const seen=new Set(valley.keys());const placeCands=[];
+  const mine=isMyTurn()&&S.phase==='play'&&MODE_ACTION==='place';
+  if(mine){for(const[q,r]of cells)for(const[dq,dr]of DIRS){const nk=key(q+dq,r+dr);
+    if(!seen.has(nk)){seen.add(nk);placeCands.push([q+dq,r+dr])}}}
+  /* slide cands */
+  const slideCandSet=new Set();
+  if(isMyTurn()&&S.phase==='play'&&MODE_ACTION==='slide'&&SLIDE_FROM)
+    slideCands(valley,SLIDE_FROM).forEach(k=>slideCandSet.add(k));
+  const all=cells.concat(placeCands);
+  let mnX=1e9,mnY=1e9,mxX=-1e9,mxY=-1e9;
   for(const[q,r]of all){const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;
-    minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}
-  const pad=s*1.5;
-  BMETA[elId]={s,vb:[minX-pad,minY-pad,maxX-minX+2*pad,maxY-minY+2*pad],
-    place:new Set(cands.map(c=>key(c[0],c[1]))),
-    tiles:new Set([...board.keys()])};
-  let svg='<svg class="board" viewBox="'+(minX-pad)+' '+(minY-pad)+' '+(maxX-minX+2*pad)+' '+(maxY-minY+2*pad)+'" preserveAspectRatio="xMidYMid meet">';
+    mnX=Math.min(mnX,x);mxX=Math.max(mxX,x);mnY=Math.min(mnY,y);mxY=Math.max(mxY,y)}
+  const pad=s*1.6;
+  BMETA['boardV']={s,vb:[mnX-pad,mnY-pad,mxX-mnX+2*pad,mxY-mnY+2*pad],
+    place:new Set(placeCands.map(c=>key(c[0],c[1]))),tiles:new Set(valley.keys())};
+  let svg='<svg class="board" viewBox="'+(mnX-pad)+' '+(mnY-pad)+' '+(mxX-mnX+2*pad)+' '+(mxY-mnY+2*pad)+'" preserveAspectRatio="xMidYMid meet">';
   for(const[q,r]of cells){
-    const k=key(q,r);const t=board.get(k);
-    const hi=(interactType==='slide'&&k===SLIDE_FROM)||(interactType==='slide_to'&&SLIDE_FROM&&slideCandidates(S.valley,SLIDE_FROM).includes(k));
+    const k=key(q,r);const t=valley.get(k);
+    const hi=(MODE_ACTION==='slide'&&k===SLIDE_FROM);
     svg+=tileSVG(t,s*Math.sqrt(3)*(q+r/2),s*1.5*r,s,hi);
   }
-  if(interactive&&interactType==='place'){
-    for(const[q,r]of cands){const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
-      svg+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(217,164,65,.12)" stroke="#D9A441" stroke-width="1.5" stroke-dasharray="4 3"/>'}
-  }
-  if(interactive&&(interactType==='slide'||interactType==='slide_to')&&SLIDE_FROM){
-    const cands2=slideCandidates(S.valley,SLIDE_FROM);
-    for(const nk of cands2){const[q,r]=nk.split(',').map(Number);
-      const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
-      svg+='<path data-k="'+nk+'" d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(76,183,133,.2)" stroke="#4cb785" stroke-width="1.5" stroke-dasharray="4 3"/>'}
-  }
+  if(mine){for(const[q,r]of placeCands){const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
+    svg+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(217,164,65,.12)" stroke="#D9A441" stroke-width="1.5" stroke-dasharray="4 3"/>'}}
+  if(slideCandSet.size){for(const nk of slideCandSet){const[q,r]=nk.split(',').map(Number);
+    const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
+    svg+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(76,183,133,.2)" stroke="#4cb785" stroke-width="1.5" stroke-dasharray="4 3"/>'}}
   svg+='</svg>';el.innerHTML=svg;
 }
 
 function render(){
   if(!S||S.phase==='pass')return;
-  const p=curP(),mine=isMyTurn(),my=me();
-  /* header */
-  const maxPl=Math.max(...S.players.map(x=>x.tilesPlayed));
-  $('rndLbl').textContent='R'+S.round+' · '+maxPl+'/'+END_TILES+' tessere';
-  /* fase */
-  const ph=S.phase;
+  const mine=isMyTurn(),p=curP(),my=me();
+  $('rndLbl').textContent='R'+S.round+'/'+ROUNDS;
   const who=mine?'<b>Tocca a te</b>':'<b>'+p.name+'</b>';
-  const phMsg={prato:who+' · piazza nel <b>Prato</b>',
-    valle_draw:who+' · pesca dalla Valle',
-    valle_place:who+' · piazza nella <b>Valle</b>',
-    valle_slide:who+' · scegli tessera da <b>spostare</b>'+(SLIDE_FROM?' → poi casella verde':''),
-    valle_done:'…',end:'Fine'};
-  $('phaseTxt').innerHTML=phMsg[ph]||'';
+  const slideHint=SLIDE_FROM?(mine?' → tocca casella verde':''):(mine?' → tocca tessera':'');
+  const phMsg={
+    play:mine?(MODE_ACTION==='place'?who+' · <b>Piazza</b> o <b>Sposta</b>':who+' · <b>Sposta</b>'+slideHint):who+' · sta giocando…',
+    done:'…',end:'Fine'};
+  $('phaseTxt').innerHTML=phMsg[S.phase]||'';
   $('ptsTxt').textContent=S.players.map(pl=>pl.name.split(' ').pop()+': '+pl.score).join(' · ');
-  /* etichetta prato */
-  $('pratoLbl').textContent='Prato di '+(MODE==='local'?p.name:my.name)+' ('+( (MODE==='local'?p:my).prato.size)+')';
-  /* highlight pannello attivo */
-  $('panePrato').style.borderBottom=(ph==='prato'&&mine)?'2px solid var(--ocra)':'2px solid var(--line)';
-  $('paneValle').style.outline=(ph==='valle_place'||ph==='valle_slide')&&mine?'2px solid var(--ocra)':'none';
-  /* tabelloni */
-  const myPrato=MODE==='local'?p.prato:my.prato;
-  renderBoard('boardP',myPrato,mine&&ph==='prato','place');
-  const vInteract=mine&&(ph==='valle_place'||ph==='valle_slide');
-  const vType=ph==='valle_place'?'place':ph==='valle_slide'?(SLIDE_FROM?'slide_to':'slide'):null;
-  renderBoard('boardV',S.valley,vInteract,vType);
-  /* tab Valle */
-  let vh='<div class="card"><h2>Forme obiettivo</h2>';
+  renderBoard();
+  /* forme */
+  let fh='';
   for(const[terr,shapes]of Object.entries(SHAPES)){
-    vh+='<div style="margin-top:8px"><b style="color:'+TCOL[terr]+'">'+TNAME[terr]+'</b><div class="shapes">';
-    shapes.forEach(sh=>{vh+='<div class="shape-row"><span>'+sh.name+' ('+sh.cells.length+')</span><span class="pts">'+sh.pts+' pt Valle</span></div>'});
-    vh+='</div></div>';
+    fh+='<div class="card"><h2>'+TEMOJI[terr]+' '+TNAME[terr]+'</h2><div class="shapes">';
+    shapes.forEach(sh=>{fh+='<div class="shape-row"><span>'+sh.name+' ('+sh.cells.length+' hex)</span><span class="pts">'+sh.pts+' pt<span style="color:var(--ink2);font-weight:400"> +🦌</span></span></div>'});
+    fh+='</div></div>';
   }
-  vh+='</div>';
-  if(S.log.length){
-    vh+='<div class="card"><h2>Biomi chiusi</h2>';
-    S.log.slice().reverse().forEach(r=>{
-      vh+='<div style="padding:4px 0;border-bottom:1px solid var(--line)">'
-        +'<b style="color:'+TCOL[r.terr]+'">'+TNAME[r.terr]+'</b> '+r.shape
-        +'<div class="proj">'+r.scores.map(sc=>'<span>'+sc.name+' +'+sc.prato+(sc.valle?' 🏆+'+sc.valle:'')+'</span>').join('')+'</div></div>';
-    });
-    vh+='</div>';
-  }
-  $('vValle').innerHTML=vh;
+  $('vForme').innerHTML=fh;
   /* punti */
-  let ph2='<table><tr><th>Giocatore</th><th>Pt</th><th>Tessere</th></tr>';
-  S.players.forEach(pl=>{ph2+='<tr><td>'+pl.name+'</td><td><b>'+pl.score+'</b></td><td>'+pl.tilesPlayed+'/'+END_TILES+'</td></tr>'});
-  ph2+='</table>';
-  $('vPunti').innerHTML=ph2;
+  let ph='<table><tr><th>Giocatore</th><th>Punti</th></tr>';
+  S.players.forEach(pl=>{ph+='<tr><td>'+pl.name+'</td><td><b>'+pl.score+'</b></td></tr>'});
+  ph+='</table>';
+  if(S.log.length){ph+='<div class="card"><h2>Biomi chiusi ('+S.log.length+')</h2>';
+    S.log.slice().reverse().forEach(r=>{ph+='<div style="padding:3px 0;border-bottom:1px solid var(--line);font-size:11px">'+TEMOJI[r.terr]+' <b>'+r.shape+'</b> +'+r.pts+'pt → '+r.by+(r.faunos?' 🦌×'+r.faunos:'')+'</div>'});
+    ph+='</div>'}
+  $('vPunti').innerHTML=ph;
   /* mano */
   const hd=$('hand');
-  if(ph==='prato'||ph==='valle_draw'||ph==='valle_place'||ph==='valle_slide'){
-    const handP=MODE==='local'?p:my;
-    let hh='<div class="ctr"><span class="lbl">';
-    if(!mine)hh+='Attendi '+p.name+'…';
-    else if(ph==='prato')hh+='Trascina una tessera nel Prato';
-    else if(ph==='valle_draw')hh+='Pesca dalla Valle ↓';
-    else if(ph==='valle_place')hh+='Trascina nella Valle';
-    else hh+='Tocca tessera Valle da spostare';
-    hh+='</span><div class="btns">';
-    if(mine&&ph==='prato')hh+='<button class="btn" data-act="rot">↻</button>';
-    if(mine&&ph==='valle_draw')hh+='<button class="btn gold" data-act="draw">Pesca</button>';
-    if(mine&&ph==='valle_slide'&&SLIDE_FROM)hh+='<button class="btn warn" data-act="cancel_slide">✕</button>';
+  if(S.phase==='play'){
+    const handP=mine?my:p;
+    let hh='<div class="ctr"><span class="lbl">'+(mine?'Mano · scegli azione':'Attendi '+p.name+'…')+'</span><div class="btns">';
+    if(mine){
+      hh+='<button class="btn'+(MODE_ACTION==='place'?' act':'')+'" data-act="mode_place">Piazza</button>';
+      hh+='<button class="btn'+(MODE_ACTION==='slide'?' act':'')+'" data-act="mode_slide">Sposta</button>';
+      if(MODE_ACTION==='place')hh+='<button class="btn" data-act="rot">↻</button>';
+      if(MODE_ACTION==='slide'&&SLIDE_FROM)hh+='<button class="btn warn" data-act="cancel_slide">✕</button>';
+    }
     hh+='</div></div><div class="row">';
-    handP.hand.forEach((t,i)=>{hh+='<div class="slot'+(i===SEL_PRATO&&mine&&ph==='prato'?' sel':'')+'" data-i="'+i+'" '+(mine?'':'style="opacity:.4"')+'>'+miniTile(t)+'<span class="cnt">'+(i+1)+'</span></div>'});
+    handP.hand.forEach((t,i)=>{
+      hh+='<div class="slot'+(i===SEL&&mine&&MODE_ACTION==='place'?' sel':'')+'" data-i="'+i+'"'+(mine?'':' style="opacity:.4"')+'>'+miniTile(t)+'</div>';
+    });
     hh+='</div>';
     hd.innerHTML=hh;hd.style.display='block';
-  }else{hd.style.display='none'}
+  }else hd.style.display='none';
 }
 
 function setView(v){
-  VIEW=v;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  ['vPlance','vValle','vPunti'].forEach(id=>$(id).classList.remove('on'));
-  $({plance:'vPlance',valle:'vValle',punti:'vPunti'}[v]).classList.add('on');
-  setTimeout(render,0);
+  ['vValle','vForme','vPunti'].forEach(id=>$(id).classList.remove('on'));
+  $({valle:'vValle',forme:'vForme',punti:'vPunti'}[v]).classList.add('on');
+  if(v==='valle')setTimeout(render,0);
 }
 
-/* ============ DRAG & DROP ============ */
+/* ===== DRAG & DROP ===== */
 let DRAG=null,HOT=null,PEND=null,lastDrop=0;
 function dragStart(i,x,y){
-  if(!S||!isMyTurn())return;
-  if(S.phase!=='prato'&&S.phase!=='valle_place')return;
-  const hp=MODE==='local'?curP():me();const t=hp.hand[i];if(!t)return;
-  SEL_PRATO=i;
+  if(!S||!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='place')return;
+  const t=me().hand[i];if(!t)return;
+  SEL=i;
   const g=document.createElement('div');
   g.style.cssText='position:fixed;z-index:300;pointer-events:none;transform:translate(-50%,-80%) scale(1.5);filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))';
   g.innerHTML=miniTile(t);document.body.appendChild(g);
@@ -832,22 +639,16 @@ function dragStart(i,x,y){
 function dragMove(x,y){
   if(!DRAG)return;
   DRAG.g.style.left=x+'px';DRAG.g.style.top=y+'px';
-  const tid=S.phase==='prato'?'boardP':'boardV';
   if(HOT){HOT.setAttribute('fill','rgba(217,164,65,.12)');HOT=null}
-  const hit=hitHex(tid,x,y);
-  if(hit&&hit.type==='place'){
-    const svg=$(tid)&&$(tid).querySelector('svg');
-    if(svg){const paths=[...svg.querySelectorAll('path')];
-      const p=paths.find(p=>{const d=p.getAttribute('d');return d&&d.includes('M')});
-      /* trova il path tratteggiato alla posizione hit */
-      const px=30*Math.sqrt(3)*(hit.q+hit.r/2),py=30*1.5*hit.r;
-      const nearest=paths.filter(p=>p.getAttribute('stroke-dasharray')).find(p=>{
-        const d=p.getAttribute('d')||'';const m=d.match(/M([\d.\-]+) ([\d.\-]+)/);
-        if(!m)return false;
-        return Math.abs(+m[1]-px)<35&&Math.abs(+m[2]-py)<35;
-      });
-      if(nearest){nearest.setAttribute('fill','rgba(217,164,65,.5)');HOT=nearest}
-    }
+  const hit=hitHex('boardV',x,y);
+  if(hit?.type==='place'){
+    const svg=$('boardV')?.querySelector('svg');if(!svg)return;
+    const qx=30*Math.sqrt(3)*(hit.q+hit.r/2),qy=30*1.5*hit.r;
+    const p=[...svg.querySelectorAll('path[stroke-dasharray]')].find(p=>{
+      const m=(p.getAttribute('d')||'').match(/M([\d.\-]+) ([\d.\-]+)/);
+      return m&&Math.abs(+m[1]-qx)<38&&Math.abs(+m[2]-qy)<38;
+    });
+    if(p){p.setAttribute('fill','rgba(217,164,65,.5)');HOT=p}
   }
 }
 function dragEnd(x,y){
@@ -856,14 +657,10 @@ function dragEnd(x,y){
   if(HOT){HOT.setAttribute('fill','rgba(217,164,65,.12)');HOT=null}
   PEND=null;
   if(Date.now()-lastDrop<400)return;
-  const tid=S.phase==='prato'?'boardP':'boardV';
-  const hit=hitHex(tid,x,y);
-  if(hit&&hit.type==='place'){lastDrop=Date.now();SEL_PRATO=i;
-    if(S.phase==='prato')placePrato(hit.q,hit.r);
-    else placeValle(hit.q,hit.r);
-  }else render();
+  const hit=hitHex('boardV',x,y);
+  if(hit?.type==='place'){lastDrop=Date.now();SEL=i;placeAt(hit.q,hit.r)}
+  else render();
 }
-
 document.addEventListener('pointermove',e=>{
   if(DRAG){e.preventDefault();dragMove(e.clientX,e.clientY);return}
   if(PEND){const dx=e.clientX-PEND.x,dy=e.clientY-PEND.y;
@@ -872,7 +669,7 @@ document.addEventListener('pointermove',e=>{
 document.addEventListener('pointerup',e=>{PEND=null;if(DRAG)dragEnd(e.clientX,e.clientY)});
 document.addEventListener('pointercancel',()=>{if(DRAG){DRAG.g.remove();DRAG=null}PEND=null});
 
-/* ============ CABLAGGIO ============ */
+/* ===== CABLAGGIO ===== */
 $('setup').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.local)newLocal(+b.dataset.local);
@@ -880,14 +677,31 @@ $('setup').addEventListener('click',e=>{
 });
 $('joinBtn').addEventListener('click',joinRoom);
 $('startBtn').addEventListener('click',startTurn);
-$('playValleBtn').addEventListener('click',playValle);
-$('discardValleBtn').addEventListener('click',discardValle);
-$('cancelValleBtn').addEventListener('click',cancelValle);
-$('closureOk').addEventListener('click',()=>{hide('closureOvl');resolveNextClosure()});
 $('endExit').addEventListener('click',()=>location.reload());
 document.getElementById('tabs').addEventListener('click',e=>{
   const b=e.target.closest('button');if(b&&b.dataset.v)setView(b.dataset.v);
 });
+/* tap sulla Valle */
+$('boardV').addEventListener('click',e=>{
+  if(!S||!isMyTurn()||S.phase!=='play')return;
+  const hit=hitHex('boardV',e.clientX,e.clientY);if(!hit)return;
+  if(MODE_ACTION==='slide'){
+    if(!SLIDE_FROM){if(hit.type==='tile')selectSlide(hit.k)}
+    else{
+      if(hit.type==='tile'&&hit.k===SLIDE_FROM){SLIDE_FROM=null;render()}
+      else if(hit.type==='tile'){
+        /* prova a scivolare nella casella del tile: non valido, segnala */
+        toast('Non puoi: casella occupata');
+      }else{
+        /* hit è una casella verde candidata */
+        executeSlide(key(hit.q,hit.r));
+      }
+    }
+  }else if(MODE_ACTION==='place'){
+    if(hit.type==='place'){lastDrop=Date.now();placeAt(hit.q,hit.r)}
+  }
+});
+/* mano */
 $('hand').addEventListener('pointerdown',e=>{
   const sl=e.target.closest('.slot');
   if(sl){e.currentTarget.setPointerCapture&&e.currentTarget.setPointerCapture(e.pointerId);
@@ -896,25 +710,13 @@ $('hand').addEventListener('pointerdown',e=>{
 $('hand').addEventListener('click',e=>{
   if(Date.now()-lastDrop<500)return;
   const sl=e.target.closest('.slot');
-  if(sl){const i=+sl.dataset.i;
-    if(S&&isMyTurn()&&S.phase==='prato'){SEL_PRATO=i;render()}
-    return;
-  }
+  if(sl&&S&&isMyTurn()&&S.phase==='play'&&MODE_ACTION==='place'){SEL=+sl.dataset.i;render();return}
   const b=e.target.closest('button');if(!b||b.disabled)return;
   const act=b.dataset.act;
-  if(act==='rot'){const t=(MODE==='local'?curP():me()).hand[SEL_PRATO];if(t){t.edges.unshift(t.edges.pop());delete t._r;render()}}
-  else if(act==='draw')drawValle();
+  if(act==='mode_place'){MODE_ACTION='place';SLIDE_FROM=null;render()}
+  else if(act==='mode_slide'){MODE_ACTION='slide';SLIDE_FROM=null;render()}
+  else if(act==='rot'){const t=me().hand[SEL];if(t){t.edges.unshift(t.edges.pop());delete t._r;render()}}
   else if(act==='cancel_slide'){SLIDE_FROM=null;render()}
-});
-/* tap sulla Valle per spostamento */
-$('boardV').addEventListener('click',e=>{
-  if(!S||!isMyTurn())return;
-  if(S.phase==='valle_slide'){
-    const hit=hitHex('boardV',e.clientX,e.clientY);if(!hit)return;
-    if(!SLIDE_FROM){if(hit.type==='tile')selectSlide(hit.k)}
-    else{if(hit.type==='tile'&&hit.k===SLIDE_FROM){SLIDE_FROM=null;render()}
-      else executeSlide(key(hit.q,hit.r))}
-  }
 });
 </script>
 </body>
