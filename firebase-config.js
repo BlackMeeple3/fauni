@@ -1,14 +1,8 @@
-// =====================================================================
-// INCOLLA QUI LA CONFIGURAZIONE DEL TUO PROGETTO FIREBASE
-// La trovi in: Console Firebase > Impostazioni progetto > Le tue app
-// > App web > "Configurazione SDK". Sostituisci i valori qui sotto.
-// La modalità locale (passa il telefono) funziona anche SENZA questo.
-// =====================================================================
 const FB_CONFIG = {
-  apiKey: "INCOLLA_QUI",
-  authDomain: "INCOLLA_QUI.firebaseapp.com",
-  projectId: "INCOLLA_QUI",
-  storageBucket: "INCOLLA_QUI.appspot.com",
-  messagingSenderId: "INCOLLA_QUI",
-  appId: "INCOLLA_QUI"
+  apiKey: "AIzaSyBTUjB5NFbtNxAlbDkDarwuL9Gq7yV_XCI",
+  authDomain: "tessere-fauni.firebaseapp.com",
+  projectId: "tessere-fauni",
+  storageBucket: "tessere-fauni.firebasestorage.app",
+  messagingSenderId: "61729328752",
+  appId: "1:61729328752:web:da16821b953f7b2d222eb5"
 };
