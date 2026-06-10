@@ -11,7 +11,7 @@
   --ink:#EAE3CF;--ink2:#A8A28C;--ocra:#D9A441;--rosso:#C4574A;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden}
+html,body{height:100%;overflow:hidden;touch-action:manipulation}
 body{background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,Segoe UI,sans-serif;display:flex;flex-direction:column}
 
 /* header */
@@ -108,6 +108,13 @@ window.__errs=[];
 function __showErr(m){window.__errs.push(m);var b=document.getElementById('errbar');if(b){b.style.display='block';b.textContent='ERR: '+window.__errs.join(' | ')}}
 window.addEventListener('error',function(e){__showErr((e.message||'?')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||'?'))});
 window.addEventListener('unhandledrejection',function(e){__showErr('promise: '+(e.reason&&e.reason.message||e.reason))});
+// blocca doppio-tap zoom su iOS Safari
+var _lt=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-_lt<320){e.preventDefault()}
+  _lt=now;
+},{passive:false});
 </script>
 
 <!-- SETUP -->
