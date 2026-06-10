@@ -33,7 +33,7 @@ h1,h2,.disp{font-family:Georgia,'Times New Roman',serif;letter-spacing:.02em}
 .view.on{display:block}
 #boardP,#boardV{display:flex;align-items:center;justify-content:center}
 svg.board{width:100%;height:100%;touch-action:manipulation}
-.cand{cursor:pointer}
+.cand{cursor:pointer;pointer-events:all}
 #hand{border-top:1px solid var(--line);background:var(--panel);padding:8px 10px 12px;display:none}
 #hand.on{display:block}
 #hand .row{display:flex;gap:8px;align-items:center;overflow-x:auto}
@@ -87,7 +87,7 @@ window.addEventListener('unhandledrejection',function(e){__showErr('promise: '+(
 
 <div id="setup">
   <h1>Il Regno dei Faùni</h1>
-  <p style="font-size:11px;color:#A8A28C">build v0.3</p>
+  <p style="font-size:11px;color:#A8A28C">build v0.4</p>
   <p class="disp">Ai piedi del Corno Grande, dove il Mavone si divide, la valle prospera solo dove i Faùni sono onorati.</p>
   <div class="blk">
     <h3>Gioca in locale (passa il dispositivo)</h3>
@@ -114,7 +114,7 @@ window.addEventListener('unhandledrejection',function(e){__showErr('promise: '+(
 </div>
 
 <div id="hdr">
-  <div class="top"><h1>Il Regno dei Faùni <small style="font-size:11px;color:#A8A28C">v0.3</small></h1><span class="rnd" id="rndLbl"></span></div>
+  <div class="top"><h1>Il Regno dei Faùni <small style="font-size:11px;color:#A8A28C">v0.4</small></h1><span class="rnd" id="rndLbl"></span></div>
   <div id="track"></div>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="tokTxt"></span></div>
@@ -524,10 +524,9 @@ function renderBoard(el,board,interactive){
   let svg='<svg class="board" viewBox="'+(minX-pad)+' '+(minY-pad)+' '+(maxX-minX+2*pad)+' '+(maxY-minY+2*pad)+'">';
   for(const[q,r]of cells){const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;svg+=tileSVG(board.get(key(q,r)),x,y,s)}
   for(const[q,r]of cands){const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
-    svg+='<path class="cand" data-q="'+q+'" data-r="'+r+'" d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(217,164,65,.07)" stroke="#D9A441" stroke-width="1" stroke-dasharray="4 4"/>'}
+    svg+='<path class="cand" data-q="'+q+'" data-r="'+r+'" d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(217,164,65,.13)" stroke="#D9A441" stroke-width="1" stroke-dasharray="4 4"/>'}
   svg+='</svg>';
   el.innerHTML=svg;
-  if(interactive)el.querySelectorAll('.cand').forEach(c=>c.addEventListener('click',()=>placeAt(+c.dataset.q,+c.dataset.r)));
 }
 function miniTile(tile){
   const s=24;return '<svg width="'+(s*2)+'" height="'+(s*2)+'" viewBox="'+(-s*1.05)+' '+(-s*1.05)+' '+(s*2.1)+' '+(s*2.1)+'">'+tileSVG(tile,0,0,s)+'</svg>';
@@ -602,6 +601,12 @@ $('hand').addEventListener('click',e=>{
   if(b.dataset.act==='rot')rot();
   else if(b.dataset.act==='close')openClose();
   else if(b.dataset.act==='end')endTurn();
+});
+['boardP','boardV'].forEach(id=>{
+  $(id).addEventListener('click',e=>{
+    const c=e.target.closest&&e.target.closest('.cand');
+    if(c)placeAt(+c.getAttribute('data-q'),+c.getAttribute('data-r'));
+  });
 });
 </script>
 </body>
