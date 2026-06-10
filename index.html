@@ -77,44 +77,52 @@ th{color:var(--ink2);font-weight:600;font-size:12px}
 </style>
 </head>
 <body>
+<div id="errbar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:#C4574A;color:#fff;font:12px/1.4 monospace;padding:8px 12px;max-height:40vh;overflow:auto"></div>
+<script>
+window.__errs=[];
+function __showErr(m){window.__errs.push(m);var b=document.getElementById('errbar');if(b){b.style.display='block';b.textContent='ERRORI ('+window.__errs.length+'): '+window.__errs.join(' || ')}}
+window.addEventListener('error',function(e){__showErr((e.message||'errore')+' @'+(e.filename||'').split('/').pop()+':'+(e.lineno||'?'))});
+window.addEventListener('unhandledrejection',function(e){__showErr('promise: '+(e.reason&&e.reason.message||e.reason))});
+</script>
 
 <div id="setup">
   <h1>Il Regno dei Faùni</h1>
+  <p style="font-size:11px;color:#A8A28C">build v0.3</p>
   <p class="disp">Ai piedi del Corno Grande, dove il Mavone si divide, la valle prospera solo dove i Faùni sono onorati.</p>
   <div class="blk">
     <h3>Gioca in locale (passa il dispositivo)</h3>
     <div class="pc">
-      <button class="btn" onclick="newLocal(2)">2</button>
-      <button class="btn" onclick="newLocal(3)">3</button>
-      <button class="btn" onclick="newLocal(4)">4</button>
+      <button class="btn" data-local="2">2</button>
+      <button class="btn" data-local="3">3</button>
+      <button class="btn" data-local="4">4</button>
     </div>
   </div>
   <div class="blk">
     <h3>Crea una partita online</h3>
     <div class="pc">
-      <button class="btn" onclick="createRoom(2)">2</button>
-      <button class="btn" onclick="createRoom(3)">3</button>
-      <button class="btn" onclick="createRoom(4)">4</button>
+      <button class="btn" data-room="2">2</button>
+      <button class="btn" data-room="3">3</button>
+      <button class="btn" data-room="4">4</button>
     </div>
   </div>
   <div class="blk">
     <h3>Entra con un codice</h3>
     <input id="joinCode" maxlength="5" placeholder="CODICE">
-    <button class="btn gold" style="width:100%" onclick="joinRoom()">Entra</button>
+    <button class="btn gold" style="width:100%" id="joinBtn">Entra</button>
   </div>
   <p id="setupErr" style="color:var(--rosso)"></p>
 </div>
 
 <div id="hdr">
-  <div class="top"><h1>Il Regno dei Faùni</h1><span class="rnd" id="rndLbl"></span></div>
+  <div class="top"><h1>Il Regno dei Faùni <small style="font-size:11px;color:#A8A28C">v0.3</small></h1><span class="rnd" id="rndLbl"></span></div>
   <div id="track"></div>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="tokTxt"></span></div>
 <div id="tabs">
-  <button data-v="prato" class="on" onclick="setView('prato')">Prato</button>
-  <button data-v="valle" onclick="setView('valle')">Valle</button>
-  <button data-v="riti" onclick="setView('riti')">Riti</button>
-  <button data-v="punti" onclick="setView('punti')">Punti</button>
+  <button data-v="prato" class="on" >Prato</button>
+  <button data-v="valle" >Valle</button>
+  <button data-v="riti" >Riti</button>
+  <button data-v="punti" >Punti</button>
 </div>
 <div id="main">
   <div class="view on" id="boardP"></div>
@@ -127,7 +135,7 @@ th{color:var(--ink2);font-weight:600;font-size:12px}
 <div class="ovl" id="passOvl">
   <h2 id="passName"></h2>
   <p>Prendi il dispositivo. La tua mano è nascosta agli altri.</p>
-  <button class="btn gold" onclick="startTurn()">Inizia il turno</button>
+  <button class="btn gold" id="startBtn">Inizia il turno</button>
 </div>
 <div class="ovl" id="lobbyOvl">
   <h2>Stanza creata</h2>
@@ -139,12 +147,12 @@ th{color:var(--ink2);font-weight:600;font-size:12px}
   <h2>Chiudi un rito</h2>
   <p>Solo i riti maturi. Tutti segnano in base al proprio Prato, poi il rito esce dal gioco.</p>
   <div id="closeList" style="width:100%;max-width:420px"></div>
-  <button class="btn" onclick="hide('closeOvl')">Annulla</button>
+  <button class="btn" id="closeCancel">Annulla</button>
 </div>
 <div class="ovl" id="endOvl" style="overflow:auto;justify-content:flex-start;padding-top:40px">
   <h2>La valle riposa</h2>
   <div id="endBody" style="width:100%;max-width:420px"></div>
-  <button class="btn gold" onclick="location.reload()">Esci</button>
+  <button class="btn gold" id="endExit">Esci</button>
 </div>
 <div id="toast"></div>
 
@@ -559,19 +567,42 @@ function render(){
     hd.classList.add('on');
     const handP=MODE==='local'?p:my;
     let hh='<div class="ctr"><span>'+(mine?(S.phase==='azione'?'Mano ('+handP.hand.length+')':'Tocca tessera, ruota, poi tocca una casella tratteggiata'):'In attesa di '+p.name+'…')+'</span><span>';
-    if(mine&&S.phase!=='azione')hh+='<button class="btn" onclick="rot()">↻ Ruota</button> ';
+    if(mine&&S.phase!=='azione')hh+='<button class="btn" data-act="rot">↻ Ruota</button> ';
     if(mine&&S.phase==='azione'){
-      hh+='<button class="btn gold" '+(canClose()?'':'disabled')+' onclick="openClose()">Chiudi un rito</button> ';
-      hh+='<button class="btn" onclick="endTurn()">Fine turno</button>';
+      hh+='<button class="btn gold" '+(canClose()?'':'disabled')+' data-act="close">Chiudi un rito</button> ';
+      hh+='<button class="btn" data-act="end">Fine turno</button>';
     }
     hh+='</span></div><div class="row">';
-    handP.hand.forEach((t,i)=>{hh+='<div class="slot'+(i===SEL&&mine&&S.phase!=='azione'?' sel':'')+'"'+(mine?'':' style="opacity:.4"')+' onclick="sel('+i+')">'+miniTile(t)+'</div>'});
+    handP.hand.forEach((t,i)=>{hh+='<div class="slot'+(i===SEL&&mine&&S.phase!=='azione'?' sel':'')+'"'+(mine?'':' style="opacity:.4"')+' data-i="'+i+'">'+miniTile(t)+'</div>'});
     hh+='</div>';
     hd.innerHTML=hh;
   }else hd.classList.remove('on');
 }
 function sel(i){if(!isMyTurn()){toast('Non è il tuo turno: attendi '+curP().name);return}if(S.phase==='azione')return;SEL=i;render()}
 function rot(){const t=(MODE==='local'?curP():me()).hand[SEL];if(!t||!isMyTurn())return;t.edges.unshift(t.edges.pop());delete t._r;render()}
+
+/* ============ cablaggio eventi (delegato, niente onclick inline) ============ */
+$('setup').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.local)newLocal(+b.dataset.local);
+  else if(b.dataset.room)createRoom(+b.dataset.room);
+  else if(b.id==='joinBtn')joinRoom();
+});
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(b&&b.dataset.v)setView(b.dataset.v);
+});
+$('startBtn').addEventListener('click',startTurn);
+$('closeCancel').addEventListener('click',()=>hide('closeOvl'));
+$('endExit').addEventListener('click',()=>location.reload());
+$('hand').addEventListener('click',e=>{
+  const slot=e.target.closest('.slot');
+  if(slot){sel(+slot.dataset.i);return}
+  const b=e.target.closest('button');if(!b)return;
+  if(b.disabled)return;
+  if(b.dataset.act==='rot')rot();
+  else if(b.dataset.act==='close')openClose();
+  else if(b.dataset.act==='end')endTurn();
+});
 </script>
 </body>
 </html>
