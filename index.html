@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Il Regno dei Faùni</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🦌</text></svg>">
 <style>
 :root{
   --bg:#23271F; --panel:#2E3329; --panel2:#383E32; --line:#4A5142;
@@ -325,7 +326,7 @@ function sync(status){
 }
 
 /* ============ rete (Firestore) ============ */
-function cid(){let c=localStorage.getItem('rf_cid');if(!c){c=Math.random().toString(36).slice(2,10);localStorage.setItem('rf_cid',c)}return c}
+function cid(){let c=sessionStorage.getItem('rf_cid');if(!c){c=Math.random().toString(36).slice(2,10);sessionStorage.setItem('rf_cid',c)}return c}
 function initFb(){
   if(NET.db)return true;
   if(typeof firebase==='undefined'||typeof FB_CONFIG==='undefined'||String(FB_CONFIG.apiKey).startsWith('INCOLLA')){
@@ -376,7 +377,10 @@ function listen(){
     if(!snap.exists)return;
     const d=snap.data();
     NET.status=d.status;NET.seats=d.seats||{};
+    const wasMy=S&&NET.mySeat!==null?NET.mySeat===curIdx():false;
     if(d.state)S=deser(d.state);
+    const nowMy=S&&NET.mySeat!==null?NET.mySeat===curIdx():false;
+    if(!wasMy&&nowMy&&d.status==='playing')toast('Tocca a te!');
     if(d.status==='waiting'){
       $('setup').style.display='none';
       $('lobbyCode').textContent=NET.code;
@@ -561,12 +565,12 @@ function render(){
       hh+='<button class="btn" onclick="endTurn()">Fine turno</button>';
     }
     hh+='</span></div><div class="row">';
-    handP.hand.forEach((t,i)=>{hh+='<div class="slot'+(i===SEL&&mine&&S.phase!=='azione'?' sel':'')+'" onclick="sel('+i+')">'+miniTile(t)+'</div>'});
+    handP.hand.forEach((t,i)=>{hh+='<div class="slot'+(i===SEL&&mine&&S.phase!=='azione'?' sel':'')+'"'+(mine?'':' style="opacity:.4"')+' onclick="sel('+i+')">'+miniTile(t)+'</div>'});
     hh+='</div>';
     hd.innerHTML=hh;
   }else hd.classList.remove('on');
 }
-function sel(i){if(!isMyTurn()||S.phase==='azione')return;SEL=i;render()}
+function sel(i){if(!isMyTurn()){toast('Non è il tuo turno: attendi '+curP().name);return}if(S.phase==='azione')return;SEL=i;render()}
 function rot(){const t=(MODE==='local'?curP():me()).hand[SEL];if(!t||!isMyTurn())return;t.edges.unshift(t.edges.pop());delete t._r;render()}
 </script>
 </body>
