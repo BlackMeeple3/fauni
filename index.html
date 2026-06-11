@@ -99,7 +99,7 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 
 <div id="hdr">
   <div class="top">
-    <span style="font-size:15px;color:var(--ocra);font-family:Georgia,serif">Il Regno dei Faùni<span style="font-size:10px;color:var(--ink2);margin-left:4px">v1.1</span></span>
+    <span style="font-size:15px;color:var(--ocra);font-family:Georgia,serif">Il Regno dei Faùni<span style="font-size:10px;color:var(--ink2);margin-left:4px">v1.3</span></span>
     <span class="rnd" id="rndLbl"></span>
   </div>
 </div>
@@ -157,35 +157,35 @@ const HAND_SIZE=5, ROUNDS=20;
    Ogni forma: nome, pts base, cells (coord axial relative), bonus +1 per Faùno nel gruppo */
 const SHAPES={
   torrente:[
-    {name:'3 in fila',        pts:2, cells:[[0,0],[1,0],[2,0]]},
-    {name:'Curva dolce',      pts:3, cells:[[0,0],[1,0],[1,1]]},
-    {name:'4 in fila',        pts:4, cells:[[0,0],[1,0],[2,0],[3,0]]},
-    {name:'Ansa (S)',         pts:5, cells:[[0,0],[1,0],[1,1],[2,1]]},
-    {name:'L ampia',          pts:6, cells:[[0,0],[1,0],[2,0],[2,1],[2,2]]},
-    {name:'Delta (Y)',        pts:8, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
-    {name:'Meandro (6)',      pts:11,cells:[[0,0],[1,0],[2,0],[2,1],[1,1],[0,1]]},
+    {name:'4 in fila',        pts:3, cells:[[0,0],[1,0],[2,0],[3,0]]},
+    {name:'Ansa (4)',         pts:4, cells:[[0,0],[1,0],[1,1],[2,1]]},
+    {name:'L ampia (5)',      pts:6, cells:[[0,0],[1,0],[2,0],[2,1],[2,2]]},
+    {name:'Z (5)',            pts:7, cells:[[0,0],[1,0],[1,1],[2,1],[2,2]]},
+    {name:'Delta Y (5)',      pts:9, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
+    {name:'Meandro (6)',      pts:12,cells:[[0,0],[1,0],[2,0],[2,1],[1,1],[0,1]]},
+    {name:'Grande Y (7)',     pts:16,cells:[[0,0],[1,0],[2,0],[0,1],[-1,1],[0,-1],[1,-1]]},
   ],
   selva:[
-    {name:'Coppia',           pts:2, cells:[[0,0],[1,0]]},
-    {name:'Triangolo',        pts:3, cells:[[0,0],[1,0],[0,1]]},
-    {name:'4 a L',            pts:5, cells:[[0,0],[1,0],[2,0],[0,1]]},
-    {name:'4 a rombo',        pts:6, cells:[[0,0],[1,0],[0,1],[1,-1]]},
-    {name:'Freccia (5)',      pts:8, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
-    {name:'Alveare (7)',      pts:14,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
+    {name:'4 a L',            pts:3, cells:[[0,0],[1,0],[2,0],[0,1]]},
+    {name:'4 a rombo',        pts:4, cells:[[0,0],[1,0],[0,1],[1,-1]]},
+    {name:'Freccia (5)',      pts:6, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
+    {name:'Trapezio (5)',     pts:7, cells:[[0,0],[1,0],[2,0],[0,1],[1,1]]},
+    {name:'Triangolo (6)',    pts:10,cells:[[0,0],[1,0],[2,0],[0,1],[1,1],[0,2]]},
+    {name:'Alveare (7)',      pts:15,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
   ],
   pascolo:[
-    {name:'Coppia',           pts:2, cells:[[0,0],[1,0]]},
-    {name:'3 adiacenti',      pts:3, cells:[[0,0],[1,0],[0,1]]},
-    {name:'Striscia 4',       pts:4, cells:[[0,0],[1,0],[1,1],[2,1]]},
-    {name:'Croce piccola (4)',pts:6, cells:[[0,0],[1,0],[-1,1],[0,-1]]},
-    {name:'Croce grande (5)', pts:9, cells:[[0,0],[1,0],[-1,1],[0,1],[0,-1]]},
-    {name:'Fiore (7)',        pts:13,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
+    {name:'4 zig-zag',        pts:3, cells:[[0,0],[1,0],[1,1],[2,1]]},
+    {name:'4 a croce',        pts:4, cells:[[0,0],[1,0],[-1,1],[0,-1]]},
+    {name:'Striscia 5',       pts:6, cells:[[0,0],[1,0],[2,0],[3,0],[4,0]]},
+    {name:'Croce grande (5)', pts:8, cells:[[0,0],[1,0],[-1,1],[0,1],[0,-1]]},
+    {name:'L+1 (6)',          pts:10,cells:[[0,0],[1,0],[2,0],[0,1],[0,-1],[0,2]]},
+    {name:'Fiore (7)',        pts:14,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
   ],
   borgo:[
-    {name:'2 adiacenti',      pts:3, cells:[[0,0],[1,0]]},
-    {name:'Triangolo',        pts:6, cells:[[0,0],[1,0],[0,1]]},
-    {name:'Quadrato (4)',     pts:10,cells:[[0,0],[1,0],[0,1],[1,-1]]},
-    {name:'Torre (5)',        pts:15,cells:[[0,0],[1,0],[0,1],[1,-1],[0,-1]]},
+    {name:'Triangolo (3)',    pts:4, cells:[[0,0],[1,0],[0,1]]},
+    {name:'Rombo (4)',        pts:8, cells:[[0,0],[1,0],[0,1],[1,-1]]},
+    {name:'Torre (5)',        pts:14,cells:[[0,0],[1,0],[0,1],[1,-1],[0,-1]]},
+    {name:'Fortezza (6)',     pts:20,cells:[[0,0],[1,0],[0,1],[1,-1],[-1,1],[-1,0]]},
   ],
 };
 
@@ -413,6 +413,11 @@ function placeAt(q,r){
   const p=curP();const tile=p.hand[SEL];if(!tile)return;
   if(S.valley.has(key(q,r)))return;
   if(S.valley.size&&!DIRS.some(([dq,dr])=>S.valley.has(key(q+dq,r+dr))))return;
+  /* almeno 2 lati adiacenti occupati (eccetto prima tessera) */
+  if(S.valley.size>1){
+    const adj=DIRS.filter(([dq,dr])=>S.valley.has(key(q+dq,r+dr))).length;
+    if(adj<2){toast('Servono almeno 2 tessere adiacenti');return}
+  }
   delete tile._r;S.valley.set(key(q,r),tile);
   p.hand.splice(SEL,1);SEL=0;
   if(S.deck.length)p.hand.push(S.deck.pop());
@@ -544,7 +549,11 @@ function renderBoard(){
   const seen=new Set(valley.keys());const placeCands=[];
   const mine=isMyTurn()&&S.phase==='play'&&MODE_ACTION==='place';
   if(mine){for(const[q,r]of cells)for(const[dq,dr]of DIRS){const nk=key(q+dq,r+dr);
-    if(!seen.has(nk)){seen.add(nk);placeCands.push([q+dq,r+dr])}}}
+    if(!seen.has(nk)){seen.add(nk);placeCands.push([q+dq,r+dr])}}
+  /* filtra: almeno 2 vicini occupati (eccetto valle con 1 sola tessera) */
+  const filtered=valley.size<=1?placeCands:placeCands.filter(([q,r])=>
+    DIRS.filter(([dq,dr])=>valley.has(key(q+dq,r+dr))).length>=2);
+  placeCands.length=0;filtered.forEach(c=>placeCands.push(c));}
   /* slide cands */
   const slideCandSet=new Set();
   if(isMyTurn()&&S.phase==='play'&&MODE_ACTION==='slide'&&SLIDE_FROM)
