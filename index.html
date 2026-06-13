@@ -3,17 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Il Regno dei Faùni</title>
+<title>Il Regno dei Faùni — Lab</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🦌</text></svg>">
 <style>
 :root{--bg:#23271F;--panel:#2E3329;--panel2:#383E32;--line:#4A5142;--ink:#EAE3CF;--ink2:#A8A28C;--ocra:#D9A441;--rosso:#C4574A}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;touch-action:manipulation}
 body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Segoe UI,sans-serif;display:flex;flex-direction:column}
-#hdr{padding:7px 12px 5px;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0}
-#hdr .top{display:flex;justify-content:space-between;align-items:center}
-#hdr h1{font-size:15px;color:var(--ocra);font-family:Georgia,serif}
-#hdr .ver{font-size:10px;color:var(--ink2);margin-left:4px}
+#hdr{padding:7px 12px 5px;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;display:flex;justify-content:space-between;align-items:center}
+#hdr .t{font-size:15px;color:var(--ocra);font-family:Georgia,serif}
 #hdr .rnd{font-size:11px;color:var(--ink2)}
 #phase{padding:6px 12px;font-size:12px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;min-height:32px;gap:6px}
 #phase b{color:var(--ocra)}
@@ -23,23 +21,21 @@ body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Segoe UI
 #main{flex:1;overflow:hidden;position:relative;min-height:0}
 .view{position:absolute;inset:0;display:none;overflow:auto}
 .view.on{display:block}
-#boardWrap{width:100%;height:100%;overflow:hidden}
+#boardV{width:100%;height:100%}
 svg.board{width:100%;height:100%;display:block;touch-action:none}
 .tview{overflow:auto;padding-bottom:8px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;margin:8px 10px}
 .card h2{font-size:13px;color:var(--ocra);margin-bottom:4px;font-family:Georgia,serif}
 .card .d{font-size:11px;color:var(--ink2);line-height:1.4}
-.shapes{margin-top:6px;display:flex;flex-direction:column;gap:2px}
-.shape-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px solid var(--line)}
-.shape-row:last-child{border:none}
-.shape-row .pts{color:var(--ocra);font-weight:700;white-space:nowrap}
-#hand{border-top:1px solid var(--line);background:var(--panel);padding:5px 8px 8px;flex-shrink:0}
-#hand .row{display:flex;gap:6px;align-items:center;padding-bottom:2px;overflow-x:auto}
-#hand .slot{flex:0 0 auto;border:2px solid transparent;border-radius:9px;padding:2px;background:var(--panel2);touch-action:none}
-#hand .slot.sel{border-color:var(--ocra)}
-#hand .ctr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px;flex-wrap:wrap}
-#hand .ctr .lbl{font-size:10px;color:var(--ink2)}
-#hand .btns{display:flex;gap:5px;flex-wrap:wrap}
+.netrow{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px solid var(--line)}
+.netrow:last-child{border:none}
+.chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px;vertical-align:middle;border:1px solid rgba(0,0,0,.4)}
+#hand{border-top:1px solid var(--line);background:var(--panel);padding:6px 10px 9px;flex-shrink:0}
+#hand .ctr{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+#hand .lbl{font-size:10px;color:var(--ink2)}
+#hand .btns{display:flex;gap:5px}
+#hand .drawn{display:flex;align-items:center;gap:8px}
+#hand .slot{border:2px solid var(--ocra);border-radius:9px;padding:2px;background:var(--panel2);touch-action:none}
 .btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:6px 11px;border-radius:7px;font:600 11px sans-serif}
 .btn.gold{background:var(--ocra);color:#23271F;border-color:var(--ocra)}
 .btn.warn{border-color:var(--rosso);color:var(--rosso)}
@@ -49,19 +45,15 @@ svg.board{width:100%;height:100%;display:block;touch-action:none}
 .ovl.on{display:flex}
 .ovl h2{font-size:19px;color:var(--ocra);font-family:Georgia,serif}
 .ovl p{color:var(--ink2);max-width:300px;font-size:13px}
-#setup{position:fixed;inset:0;background:var(--bg);z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;overflow:auto}
+#setup{position:fixed;inset:0;background:var(--bg);z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center}
 #setup h1{font-size:22px;color:var(--ocra);font-family:Georgia,serif}
 #setup p{color:var(--ink2);max-width:300px;font-size:12px}
-#setup .blk{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;width:100%;max-width:320px}
-#setup .blk h3{font-size:12px;margin-bottom:8px}
 #setup .pc{display:flex;gap:8px;justify-content:center}
-#setup .pc button{width:44px;height:44px;border-radius:9px;font-size:17px}
-#setup input{width:100%;padding:9px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:600 15px monospace;text-transform:uppercase;text-align:center;letter-spacing:.2em;margin-bottom:8px}
-.code{font:700 26px monospace;letter-spacing:.2em;color:var(--ocra);border:1px dashed var(--ocra);border-radius:9px;padding:7px 14px}
+#setup .pc button{padding:12px 18px;border-radius:9px;font-size:14px}
 table{width:calc(100% - 20px);margin:8px 10px;border-collapse:collapse;font-size:11px}
 td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--ink2);font-weight:600;font-size:10px}
-#toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:var(--ocra);color:#23271F;padding:6px 14px;border-radius:16px;font:600 11px sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:60;max-width:88%;text-align:center}
+#toast{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);background:var(--ocra);color:#23271F;padding:6px 14px;border-radius:16px;font:600 11px sans-serif;opacity:0;transition:opacity .25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
 #errbar{display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:#C4574A;color:#fff;font:10px monospace;padding:5px 8px;max-height:30vh;overflow:auto}
 </style>
 </head>
@@ -75,419 +67,369 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 
 <div id="setup">
   <h1>Il Regno dei Faùni</h1>
-  <p>Ai piedi del Corno Grande, dove il Mavone si divide.</p>
-  <div class="blk"><h3>Locale (passa il dispositivo)</h3>
-    <div class="pc">
-      <button class="btn" data-local="2">2</button>
-      <button class="btn" data-local="3">3</button>
-      <button class="btn" data-local="4">4</button>
-    </div>
+  <p>Lab v2.0 · reti globali, contributi, congelamento automatico. Tu sei <b style="color:#F2EFE4">Bianco</b>.</p>
+  <div class="pc">
+    <button class="btn gold" data-bots="3">Tu vs 3 bot</button>
+    <button class="btn" data-bots="2">Tu vs 2</button>
+    <button class="btn" data-bots="1">Tu vs 1</button>
   </div>
-  <div class="blk"><h3>Partita online</h3>
-    <div class="pc">
-      <button class="btn" data-room="2">2</button>
-      <button class="btn" data-room="3">3</button>
-      <button class="btn" data-room="4">4</button>
-    </div>
-  </div>
-  <div class="blk"><h3>Entra con codice</h3>
-    <input id="joinCode" maxlength="5" placeholder="CODICE">
-    <button class="btn gold" style="width:100%" id="joinBtn">Entra</button>
-  </div>
-  <p id="setupErr" style="color:var(--rosso)"></p>
 </div>
 
 <div id="hdr">
-  <div class="top">
-    <span style="font-size:15px;color:var(--ocra);font-family:Georgia,serif">Il Regno dei Faùni<span style="font-size:10px;color:var(--ink2);margin-left:4px">v1.3</span></span>
-    <span class="rnd" id="rndLbl"></span>
-  </div>
+  <span class="t">Il Regno dei Faùni <span style="font-size:10px;color:var(--ink2)">v2.0</span></span>
+  <span class="rnd" id="rndLbl"></span>
 </div>
-<div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:11px;color:var(--ink2)"></span></div>
+<div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:10px;color:var(--ink2)"></span></div>
 <div id="tabs">
   <button data-v="valle" class="on">Valle</button>
-  <button data-v="forme">Forme</button>
+  <button data-v="reti">Reti</button>
   <button data-v="punti">Punti</button>
 </div>
 <div id="main">
-  <div class="view on" id="vValle">
-    <div id="boardWrap"><div id="boardV" style="width:100%;height:100%"></div></div>
-  </div>
-  <div class="view tview" id="vForme"></div>
+  <div class="view on" id="vValle"><div id="boardV"></div></div>
+  <div class="view tview" id="vReti"></div>
   <div class="view tview" id="vPunti"></div>
 </div>
 <div id="hand"></div>
 
-<div class="ovl" id="passOvl">
-  <h2 id="passName"></h2>
-  <p>Prendi il dispositivo. La tua mano è nascosta agli altri.</p>
-  <button class="btn gold" id="startBtn">Inizia il turno</button>
-</div>
-<div class="ovl" id="closureOvl" style="justify-content:flex-start;padding-top:30px">
-  <h2>🎉 Bioma chiuso!</h2>
-  <div id="closureBody" style="width:100%;max-width:380px"></div>
-  <button class="btn gold" id="closureOk">Continua</button>
+<div class="ovl" id="freezeOvl" style="justify-content:flex-start;padding-top:30px">
+  <h2>❄️ Rete congelata!</h2>
+  <div id="freezeBody" style="width:100%;max-width:380px"></div>
+  <button class="btn gold" id="freezeOk">Continua</button>
 </div>
 <div class="ovl" id="endOvl" style="justify-content:flex-start;padding-top:30px">
   <h2>La Valle riposa</h2>
   <div id="endBody" style="width:100%;max-width:380px"></div>
   <button class="btn gold" id="endExit">Nuova partita</button>
 </div>
-<div class="ovl" id="lobbyOvl">
-  <h2>Stanza creata</h2>
-  <p>Condividi il codice. La partita parte quando tutti i posti sono occupati.</p>
-  <div class="code" id="lobbyCode"></div>
-  <p id="lobbySeats" style="color:var(--ink2);font-size:12px"></p>
-</div>
 <div id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
 <script>
 'use strict';
+/* ===== PARAMETRI DA TARARE ===== */
+const THRESHOLDS=[6,8,10];    // soglie L1,L2,L3 (tarate su 100 partite simulate)
+const FREEZE_BONUS=[2,3,4];    // bonus a chi esegue la mossa che congela
+const PTS_PER_TILE=1;          // punti per ogni propria tessera nella rete
+const MIN_ADJ_AFTER=6;         // dopo N tessere servono 2 lati adiacenti
+const MAX_ROUNDS=25;
+
 /* ===== COSTANTI ===== */
+const BIOMES=['selva','pascolo','torrente','borgo'];
 const TCOL={selva:'#3F6B4B',pascolo:'#A9B35A',torrente:'#5E9EC4',borgo:'#B5795B'};
 const TNAME={selva:'Selva',pascolo:'Pascolo',torrente:'Torrente',borgo:'Borgo'};
 const TEMOJI={selva:'🌲',pascolo:'🌿',torrente:'💧',borgo:'🏛️'};
+const PCOLORS=['#F2EFE4','#E0B341','#C4574A','#8E7CC3'];
+const PNAMES=['Tu','Bot Ocra','Bot Rosso','Bot Viola'];
 const DIRS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
-const HAND_SIZE=5, ROUNDS=20;
-
-/* ===== FORME OBIETTIVO =====
-   Ogni forma: nome, pts base, cells (coord axial relative), bonus +1 per Faùno nel gruppo */
-const SHAPES={
-  torrente:[
-    {name:'4 in fila',        pts:3, cells:[[0,0],[1,0],[2,0],[3,0]]},
-    {name:'Ansa (4)',         pts:4, cells:[[0,0],[1,0],[1,1],[2,1]]},
-    {name:'L ampia (5)',      pts:6, cells:[[0,0],[1,0],[2,0],[2,1],[2,2]]},
-    {name:'Z (5)',            pts:7, cells:[[0,0],[1,0],[1,1],[2,1],[2,2]]},
-    {name:'Delta Y (5)',      pts:9, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
-    {name:'Meandro (6)',      pts:12,cells:[[0,0],[1,0],[2,0],[2,1],[1,1],[0,1]]},
-    {name:'Grande Y (7)',     pts:16,cells:[[0,0],[1,0],[2,0],[0,1],[-1,1],[0,-1],[1,-1]]},
-  ],
-  selva:[
-    {name:'4 a L',            pts:3, cells:[[0,0],[1,0],[2,0],[0,1]]},
-    {name:'4 a rombo',        pts:4, cells:[[0,0],[1,0],[0,1],[1,-1]]},
-    {name:'Freccia (5)',      pts:6, cells:[[0,0],[1,0],[0,1],[-1,1],[1,-1]]},
-    {name:'Trapezio (5)',     pts:7, cells:[[0,0],[1,0],[2,0],[0,1],[1,1]]},
-    {name:'Triangolo (6)',    pts:10,cells:[[0,0],[1,0],[2,0],[0,1],[1,1],[0,2]]},
-    {name:'Alveare (7)',      pts:15,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
-  ],
-  pascolo:[
-    {name:'4 zig-zag',        pts:3, cells:[[0,0],[1,0],[1,1],[2,1]]},
-    {name:'4 a croce',        pts:4, cells:[[0,0],[1,0],[-1,1],[0,-1]]},
-    {name:'Striscia 5',       pts:6, cells:[[0,0],[1,0],[2,0],[3,0],[4,0]]},
-    {name:'Croce grande (5)', pts:8, cells:[[0,0],[1,0],[-1,1],[0,1],[0,-1]]},
-    {name:'L+1 (6)',          pts:10,cells:[[0,0],[1,0],[2,0],[0,1],[0,-1],[0,2]]},
-    {name:'Fiore (7)',        pts:14,cells:[[0,0],[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]]},
-  ],
-  borgo:[
-    {name:'Triangolo (3)',    pts:4, cells:[[0,0],[1,0],[0,1]]},
-    {name:'Rombo (4)',        pts:8, cells:[[0,0],[1,0],[0,1],[1,-1]]},
-    {name:'Torre (5)',        pts:14,cells:[[0,0],[1,0],[0,1],[1,-1],[0,-1]]},
-    {name:'Fortezza (6)',     pts:20,cells:[[0,0],[1,0],[0,1],[1,-1],[-1,1],[-1,0]]},
-  ],
-};
 
 /* ===== MAZZO ===== */
 let tid=0;
-const mk=(e,g)=>({id:++tid,edges:e.slice(),guest:g||null,covered:false});
-function many(n,e,gN){const a=[];for(let i=0;i<n;i++)a.push(mk(e,i<gN?'fauno':null));return a}
+const mk=b=>({id:++tid,biomes:b.slice(),owner:null,frozenFor:[]});
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
-const S_='selva',P_='pascolo',T_='torrente',B_='borgo';
 function buildDeck(){
-  let d=[];
-  d=d.concat(
-    many(18,[S_,S_,S_,S_,S_,S_],7),many(18,[P_,P_,P_,P_,P_,P_],5),
-    many(16,[T_,T_,T_,T_,T_,T_],6),many(16,[B_,B_,B_,B_,B_,B_],4),
-    many(12,[S_,S_,S_,P_,P_,P_],3),many(12,[T_,T_,T_,P_,P_,P_],3),
-    many(10,[S_,S_,S_,T_,T_,T_],3),many(10,[B_,B_,B_,P_,P_,P_],2),
-    many(8,[B_,B_,B_,T_,T_,T_],2),many(8,[S_,S_,P_,P_,T_,T_],2),
-    many(6,[S_,S_,B_,B_,P_,P_],1));
+  const d=[];
+  /* mono: rare (3 per bioma = 12) */
+  for(const b of BIOMES)for(let i=0;i<3;i++)d.push(mk([b]));
+  /* bi: 8 per coppia (6 coppie = 48) */
+  const pairs=[];for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)pairs.push([BIOMES[i],BIOMES[j]]);
+  for(const p of pairs)for(let i=0;i<8;i++)d.push(mk(p));
+  /* tri: 4 per tripla (4 triple = 16) */
+  for(let skip=0;skip<4;skip++){const t=BIOMES.filter((_,i)=>i!==skip);for(let i=0;i<4;i++)d.push(mk(t))}
+  /* tetra: 8 */
+  for(let i=0;i<8;i++)d.push(mk(BIOMES.slice()));
   return shuffle(d);
 }
 
 /* ===== GEOMETRIA ===== */
 const key=(q,r)=>q+','+r;
-function runsOf(e){
-  if(new Set(e).size===1)return{runs:[{t:e[0],edges:[0,1,2,3,4,5]}],edgeRun:[0,0,0,0,0,0]};
-  let st=0;for(let i=0;i<6;i++)if(e[i]!==e[(i+5)%6]){st=i;break}
-  const runs=[];let cur=null;
-  for(let k=0;k<6;k++){const i=(st+k)%6;
-    if(cur&&e[i]===cur.t)cur.edges.push(i);
-    else{cur={t:e[i],edges:[i]};runs.push(cur)}}
-  const er=Array(6);runs.forEach((r,ri)=>r.edges.forEach(i=>er[i]=ri));
-  return{runs,edgeRun:er};
-}
-const R=t=>t._r||(t._r=runsOf(t.edges));
+const unkey=k=>k.split(',').map(Number);
 
-/* ===== RILEVAMENTO FORME ===== */
-function rotCell([q,r]){return[-r,q+r]}
-function normCells(cells){
-  const mq=Math.min(...cells.map(c=>c[0])),mr=Math.min(...cells.map(c=>c[1]));
-  return cells.map(([q,r])=>[q-mq,r-mr]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-}
-function canonical(cells){
-  let best=null,cur=cells;
-  for(let i=0;i<6;i++){const s=JSON.stringify(normCells(cur));if(!best||s<best){best=s}cur=cur.map(rotCell)}
-  return best;
-}
-const SHAPE_CANON={};
-for(const[t,shapes]of Object.entries(SHAPES))
-  SHAPE_CANON[t]=shapes.map(sh=>({...sh,canon:canonical(sh.cells)}));
-
-function connGroups(cells){
-  const map=new Map(cells.map(c=>[key(c[0],c[1]),c]));
+/* ===== RETI ===== */
+function networks(valley,biome){
+  /* gruppi connessi di tessere che contengono il bioma e non l'hanno già speso */
+  const nodes=new Set();
+  for(const[k,t]of valley)
+    if(t.biomes.includes(biome)&&!t.frozenFor.includes(biome))nodes.add(k);
   const vis=new Set();const groups=[];
-  for(const[k,c]of map){
-    if(vis.has(k))continue;
-    const grp=[],q=[c];vis.add(k);
-    while(q.length){const[cq,cr]=q.shift();grp.push([cq,cr]);
+  for(const start of nodes){
+    if(vis.has(start))continue;
+    const grp=[];const q=[start];vis.add(start);
+    while(q.length){const k=q.shift();grp.push(k);
+      const[cq,cr]=unkey(k);
       for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
-        if(map.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(map.get(nk))}}}
+        if(nodes.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(nk)}}}
     groups.push(grp);
   }
   return groups;
 }
 
-function checkClosures(valley){
-  const byTerr={selva:[],pascolo:[],torrente:[],borgo:[]};
-  for(const[k,t]of valley){
-    if(t.covered)continue;
-    const[q,r]=k.split(',').map(Number);
-    const dom=t.edges[0];
-    if(byTerr[dom])byTerr[dom].push([q,r]);
-  }
-  const found=[];
-  for(const[terr,cells]of Object.entries(byTerr)){
-    for(const grp of connGroups(cells)){
-      if(grp.length<2)continue;
-      const c=canonical(grp);
-      let best=null;
-      for(const sh of SHAPE_CANON[terr])
-        if(sh.canon===c&&(!best||sh.pts>best.pts))best=sh;
-      if(best){
-        /* conta fauni nel gruppo */
-        let faunos=0;
-        grp.forEach(([q,r])=>{const t=valley.get(key(q,r));if(t&&t.guest==='fauno')faunos++});
-        found.push({terr,shape:best,cells:grp,faunos});
-      }
-    }
-  }
-  return found;
-}
-
 /* ===== SCIVOLAMENTO REGINA ===== */
 function canSlide(valley,fromKey,toKey){
-  const[fq,fr]=fromKey.split(',').map(Number);
-  const[tq,tr]=toKey.split(',').map(Number);
+  const[fq,fr]=unkey(fromKey),[tq,tr]=unkey(toKey);
   if(!DIRS.some(([dq,dr])=>fq+dq===tq&&fr+dr===tr))return false;
   if(valley.has(toKey))return false;
-  if(valley.get(fromKey)?.covered)return false;
+  const t=valley.get(fromKey);
+  if(!t||t.frozenFor.length>0)return false;
   /* freedom to move */
   const shared=[];
   for(const[dq,dr]of DIRS){
     const nk=key(fq+dq,fr+dr);if(nk===toKey)continue;
-    if(DIRS.some(([d2,d3])=>key(tq+d2,tr+d3)===nk))shared.push(nk);
+    if(DIRS.some(([a,b])=>key(tq+a,tr+b)===nk))shared.push(nk);
   }
   if(shared.length>=2&&shared.every(k=>valley.has(k)))return false;
-  /* valley connessa */
+  /* connessione */
   const test=new Map(valley);test.delete(fromKey);
-  if(test.size===0)return true;
-  const start=[...test.keys()][0];
-  const vis=new Set([start]);const q=[start];
-  while(q.length){const k=q.shift();const[cq,cr]=k.split(',').map(Number);
-    for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
-      if(test.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(nk)}}}
-  if(vis.size!==test.size)return false;
-  /* resta adiacente */
-  const[q2,r2]=toKey.split(',').map(Number);
-  return DIRS.some(([dq,dr])=>{const nk=key(q2+dq,r2+dr);return valley.has(nk)&&nk!==fromKey});
+  if(test.size>0){
+    const start=test.keys().next().value;
+    const vis=new Set([start]);const q=[start];
+    while(q.length){const k=q.shift();const[cq,cr]=unkey(k);
+      for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
+        if(test.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(nk)}}}
+    if(vis.size!==test.size)return false;
+  }
+  /* adiacenza post-mossa */
+  return DIRS.some(([dq,dr])=>{const nk=key(tq+dq,tr+dr);return valley.has(nk)&&nk!==fromKey});
 }
 function slideCands(valley,fromKey){
-  const[fq,fr]=fromKey.split(',').map(Number);
+  const[fq,fr]=unkey(fromKey);
   return DIRS.map(([dq,dr])=>key(fq+dq,fr+dr)).filter(nk=>canSlide(valley,fromKey,nk));
+}
+function placeCells(valley){
+  const seen=new Set(valley.keys());const out=[];
+  for(const k of valley.keys()){const[q,r]=unkey(k);
+    for(const[dq,dr]of DIRS){const nk=key(q+dq,r+dr);
+      if(!seen.has(nk)){seen.add(nk);out.push(nk)}}}
+  if(valley.size<=MIN_ADJ_AFTER)return out;
+  return out.filter(k=>{const[q,r]=unkey(k);
+    return DIRS.filter(([dq,dr])=>valley.has(key(q+dq,r+dr))).length>=2});
 }
 
 /* ===== STATO ===== */
-let S=null,MODE='local';
-let SEL=0,MODE_ACTION='place',SLIDE_FROM=null;
-const NET={db:null,code:null,ref:null,mySeat:null,clientId:null,unsub:null,seats:null};
-
-function newGame(np){
-  const deck=buildDeck();
-  const st={np,deck,valley:new Map(),players:[],round:1,seat:0,phase:'pass',pending:[],log:[]};
-  st.valley.set(key(0,0),deck.pop());
-  for(let i=0;i<np;i++){
-    const p={name:'Giocatore '+(i+1),hand:[],score:0};
-    for(let j=0;j<HAND_SIZE;j++)p.hand.push(deck.pop());
-    st.players.push(p);
-  }
-  return st;
+let S=null;
+let MODE_ACTION='place',SLIDE_FROM=null,DRAWN=null;
+function newGame(nBots){
+  const np=nBots+1;
+  S={np,deck:buildDeck(),valley:new Map(),
+    players:[],round:1,seat:0,phase:'idle',
+    thIdx:{selva:0,pascolo:0,torrente:0,borgo:0},
+    log:[],over:false};
+  S.valley.set(key(0,0),S.deck.pop());
+  for(let i=0;i<np;i++)S.players.push({name:PNAMES[i],color:PCOLORS[i],score:0,isBot:i>0});
 }
 const curIdx=()=>(S.round-1+S.seat)%S.np;
 const curP=()=>S.players[curIdx()];
-const isMyTurn=()=>MODE==='local'||NET.mySeat===curIdx();
-const me=()=>MODE==='local'?curP():S.players[NET.mySeat];
 
-/* ===== SERIALIZZAZIONE ===== */
-const ct=t=>({i:t.id,e:t.edges,g:t.guest||null,c:t.covered||false});
-const ut=o=>({id:o.i,edges:o.e,guest:o.g||null,covered:o.c||false});
-function ser(){
-  const cp=p=>({name:p.name,score:p.score,hand:p.hand.map(ct)});
-  return JSON.stringify({np:S.np,round:S.round,seat:S.seat,phase:S.phase,
-    deck:S.deck.map(ct),valley:[...S.valley].map(([k,t])=>[k,ct(t)]),
-    players:S.players.map(cp),log:S.log});
+/* ===== CONGELAMENTO ===== */
+function detectFreezes(valley,thIdx){
+  const out=[];
+  for(const b of BIOMES){
+    if(thIdx[b]>=THRESHOLDS.length)continue;
+    const need=THRESHOLDS[thIdx[b]];
+    for(const grp of networks(valley,b))
+      if(grp.length>=need)out.push({biome:b,group:grp,level:thIdx[b]});
+  }
+  return out;
 }
-function deser(str){
-  const d=JSON.parse(str);
-  return{np:d.np,round:d.round,seat:d.seat,phase:d.phase,pending:[],
-    deck:d.deck.map(ut),valley:new Map(d.valley.map(([k,t])=>[k,ut(t)])),
-    players:d.players.map(p=>({name:p.name,score:p.score,hand:p.hand.map(ut)})),
-    log:d.log};
+function applyFreezes(freezes,moverIdx){
+  const events=[];
+  for(const f of freezes){
+    const contrib={};
+    for(const k of f.group){
+      const t=S.valley.get(k);
+      t.frozenFor.push(f.biome);
+      if(t.owner!==null)contrib[t.owner]=(contrib[t.owner]||0)+1;
+    }
+    const bonus=FREEZE_BONUS[f.level];
+    for(const[pi,n]of Object.entries(contrib))S.players[pi].score+=n*PTS_PER_TILE;
+    S.players[moverIdx].score+=bonus;
+    S.thIdx[f.biome]++;
+    events.push({biome:f.biome,level:f.level,size:f.group.length,contrib,bonus,by:moverIdx,round:S.round});
+    S.log.push(events[events.length-1]);
+  }
+  return events;
 }
-function sync(st){
-  if(MODE!=='online')return;
-  NET.ref.set({state:ser(),status:st||'playing'},{merge:true}).catch(e=>toast('Rete: '+e.message));
+function gameOver(){
+  if(BIOMES.every(b=>S.thIdx[b]>=THRESHOLDS.length))return true;
+  if(!S.deck.length)return true;
+  if(S.round>MAX_ROUNDS)return true;
+  return false;
 }
 
-/* ===== RETE ===== */
-function cid(){let c=sessionStorage.getItem('rf_cid');if(!c){c=Math.random().toString(36).slice(2,10);sessionStorage.setItem('rf_cid',c)}return c}
-function initFb(){
-  if(NET.db)return true;
-  if(typeof firebase==='undefined'||typeof FB_CONFIG==='undefined'||String(FB_CONFIG.apiKey).startsWith('INCOLLA'))
-    {$('setupErr').textContent='Configura firebase-config.js.';return false}
-  firebase.initializeApp(FB_CONFIG);NET.db=firebase.firestore();NET.clientId=cid();return true;
+/* ===== AZIONI ===== */
+function doPlace(k,tile,pi){
+  tile.owner=pi;S.valley.set(k,tile);
+  return applyFreezes(detectFreezes(S.valley,S.thIdx),pi);
 }
-function roomCode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<5;i++)c+=A[Math.floor(Math.random()*A.length)];return c}
-function createRoom(np){
-  if(!initFb())return;MODE='online';S=newGame(np);
-  NET.code=roomCode();NET.mySeat=0;NET.ref=NET.db.collection('rooms').doc(NET.code);
-  const nm=(prompt('Il tuo nome?','Giocatore 1')||'G1').slice(0,14);S.players[0].name=nm;
-  NET.ref.set({np,status:'waiting',seats:{0:NET.clientId},created:Date.now(),state:ser()})
-    .then(()=>listen()).catch(e=>$('setupErr').textContent='Errore: '+e.message);
+function doSlide(fromK,toK,pi){
+  const t=S.valley.get(fromK);
+  S.valley.delete(fromK);S.valley.set(toK,t);
+  return applyFreezes(detectFreezes(S.valley,S.thIdx),pi);
 }
-function joinRoom(){
-  if(!initFb())return;
-  const code=$('joinCode').value.trim().toUpperCase();
-  if(code.length<4){$('setupErr').textContent='Inserisci il codice.';return}
-  MODE='online';NET.code=code;NET.ref=NET.db.collection('rooms').doc(code);
-  const nm=(prompt('Il tuo nome?','')||'').slice(0,14);
-  NET.db.runTransaction(async tx=>{
-    const snap=await tx.get(NET.ref);if(!snap.exists)throw new Error('Stanza non trovata.');
-    const d=snap.data();const seats=d.seats||{};
-    let seat=null;for(const k in seats)if(seats[k]===NET.clientId)seat=+k;
-    if(seat===null){for(let i=0;i<d.np;i++)if(!(i in seats)){seat=i;break}}
-    if(seat===null)throw new Error('Stanza piena.');
-    seats[seat]=NET.clientId;S=deser(d.state);if(nm)S.players[seat].name=nm;
-    tx.update(NET.ref,{seats,state:ser(),...Object.keys(seats).length>=d.np?{status:'playing'}:{}});
-    NET.mySeat=seat;
-  }).then(()=>listen()).catch(e=>{MODE='local';$('setupErr').textContent=e.message});
+
+/* ===== BOT ===== */
+function botEvalPlace(k,tile,pi){
+  /* valuta congelamenti immediati + sviluppo */
+  let sc=Math.random()*0.2;
+  const[q,r]=unkey(k);
+  for(const b of tile.biomes){
+    if(S.thIdx[b]>=THRESHOLDS.length)continue;
+    const need=THRESHOLDS[S.thIdx[b]];
+    /* gruppo virtuale: BFS da k su nodi del bioma + k */
+    const nodes=new Set([k]);
+    for(const[kk,t]of S.valley)
+      if(t.biomes.includes(b)&&!t.frozenFor.includes(b))nodes.add(kk);
+    const vis=new Set([k]);const qq=[k];const grp=[k];
+    while(qq.length){const ck=qq.shift();const[cq,cr]=unkey(ck);
+      for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
+        if(nodes.has(nk)&&!vis.has(nk)){vis.add(nk);qq.push(nk);grp.push(nk)}}}
+    if(grp.length>=need){
+      /* congela: calcola punti miei vs altrui */
+      let mine=1,theirs=0; /* la mia tessera nuova */
+      for(const kk of grp){if(kk===k)continue;
+        const t=S.valley.get(kk);if(t.owner===null)continue;
+        if(t.owner===pi)mine++;else theirs++}
+      sc+=mine*PTS_PER_TILE+FREEZE_BONUS[S.thIdx[b]]-0.8*theirs*PTS_PER_TILE;
+    }else{
+      /* sviluppo: +0.2 per tessera mia che si aggiunge a rete */
+      sc+=0.25;
+      /* penalità: porto la rete a soglia-1 e non sono il top contributor */
+      if(grp.length===need-1){
+        let mine=1,top=0;
+        const cnt={};
+        for(const kk of grp){if(kk===k)continue;const t=S.valley.get(kk);
+          if(t.owner===null)continue;cnt[t.owner]=(cnt[t.owner]||0)+1}
+        for(const[o,n]of Object.entries(cnt)){if(+o===pi)mine+=n;else if(n>top)top=n}
+        if(top>mine)sc-=0.6*(top-mine);
+      }
+    }
+  }
+  return sc;
 }
-function listen(){
-  if(NET.unsub)NET.unsub();
-  NET.unsub=NET.ref.onSnapshot(snap=>{
-    if(!snap.exists)return;
-    const d=snap.data();NET.seats=d.seats||{};
-    const wasMy=S&&NET.mySeat!==null&&NET.mySeat===curIdx();
-    if(d.state)S=deser(d.state);
-    const nowMy=NET.mySeat!==null&&NET.mySeat===curIdx();
-    if(!wasMy&&nowMy&&d.status==='playing')toast('Tocca a te!');
-    if(d.status==='waiting'){
-      $('setup').style.display='none';
-      $('lobbyCode').textContent=NET.code;
-      $('lobbySeats').textContent='Posti: '+Object.keys(NET.seats).length+'/'+d.np;
-      show('lobbyOvl');
-    }else{hide('lobbyOvl');$('setup').style.display='none';
-      if(d.status==='done'){buildEnd();show('endOvl')}else render()}
-  },e=>toast('Conn: '+e.message));
+function botEvalSlide(fromK,toK,pi){
+  let sc=Math.random()*0.15-0.1; /* leggera preferenza per piazzare */
+  const t=S.valley.get(fromK);
+  /* simula */
+  S.valley.delete(fromK);S.valley.set(toK,t);
+  const fr=detectFreezes(S.valley,S.thIdx);
+  for(const f of fr){
+    let mine=0,theirs=0;
+    for(const kk of f.group){const tt=S.valley.get(kk);
+      if(tt.owner===null)continue;
+      if(tt.owner===pi)mine++;else theirs++}
+    sc+=mine*PTS_PER_TILE+FREEZE_BONUS[f.level]-0.8*theirs*PTS_PER_TILE;
+  }
+  /* sabotage: per ogni bioma, gruppi a soglia-1 con top altrui PRIMA che ora non esistono */
+  S.valley.delete(toK);S.valley.set(fromK,t); /* ripristina */
+  const before=threatCount(pi);
+  S.valley.delete(fromK);S.valley.set(toK,t);
+  const after=threatCount(pi);
+  S.valley.delete(toK);S.valley.set(fromK,t);
+  sc+=0.9*(before-after);
+  return sc;
+}
+function threatCount(pi){
+  /* gruppi altrui a soglia-1 */
+  let n=0;
+  for(const b of BIOMES){
+    if(S.thIdx[b]>=THRESHOLDS.length)continue;
+    const need=THRESHOLDS[S.thIdx[b]];
+    for(const grp of networks(S.valley,b)){
+      if(grp.length!==need-1)continue;
+      const cnt={};
+      for(const kk of grp){const t=S.valley.get(kk);if(t.owner===null)continue;
+        cnt[t.owner]=(cnt[t.owner]||0)+1}
+      let topO=-1,top=0;
+      for(const[o,c]of Object.entries(cnt))if(c>top){top=c;topO=+o}
+      if(topO!==pi&&topO>=0)n++;
+    }
+  }
+  return n;
+}
+function botTurn(pi){
+  if(!S.deck.length){advance();return}
+  const tile=S.deck.pop();
+  let best={sc:-1e9,type:null};
+  for(const k of placeCells(S.valley)){
+    const sc=botEvalPlace(k,tile,pi);
+    if(sc>best.sc)best={sc,type:'place',k};
+  }
+  /* spostamenti: campiona le tessere mobili */
+  const mobile=[...S.valley.keys()].filter(k=>S.valley.get(k).frozenFor.length===0);
+  for(const fromK of mobile){
+    for(const toK of slideCands(S.valley,fromK)){
+      const sc=botEvalSlide(fromK,toK,pi);
+      if(sc>best.sc)best={sc,type:'slide',fromK,toK};
+    }
+  }
+  let events=[];
+  if(best.type==='place'){events=doPlace(best.k,tile,pi);
+    if(!window.SIM)toast(PNAMES[pi]+' piazza '+tile.biomes.map(b=>TEMOJI[b]).join(''));
+  }else if(best.type==='slide'){/* scarta la pescata */
+    events=doSlide(best.fromK,best.toK,pi);
+    if(!window.SIM)toast(PNAMES[pi]+' scarta e sposta una tessera');
+  }else{advance();return}
+  if(events.length&&!window.SIM)showFreezes(events,()=>advance());
+  else advance();
 }
 
 /* ===== FLUSSO ===== */
-function newLocal(np){MODE='local';S=newGame(np);$('setup').style.display='none';showPass()}
-function showPass(){S.phase='pass';SLIDE_FROM=null;MODE_ACTION='place';$('passName').textContent=curP().name;show('passOvl');render()}
-function startTurn(){hide('passOvl');S.phase='play';SEL=0;MODE_ACTION='place';SLIDE_FROM=null;render()}
-
-function placeAt(q,r){
-  if(!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='place')return;
-  const p=curP();const tile=p.hand[SEL];if(!tile)return;
-  if(S.valley.has(key(q,r)))return;
-  if(S.valley.size&&!DIRS.some(([dq,dr])=>S.valley.has(key(q+dq,r+dr))))return;
-  /* almeno 2 lati adiacenti occupati (eccetto prima tessera) */
-  if(S.valley.size>1){
-    const adj=DIRS.filter(([dq,dr])=>S.valley.has(key(q+dq,r+dr))).length;
-    if(adj<2){toast('Servono almeno 2 tessere adiacenti');return}
-  }
-  delete tile._r;S.valley.set(key(q,r),tile);
-  p.hand.splice(SEL,1);SEL=0;
-  if(S.deck.length)p.hand.push(S.deck.pop());
-  S.phase='done';
-  resolveClosures(curIdx());
+function startHumanTurn(){
+  if(!S.deck.length){advance();return}
+  DRAWN=S.deck.pop();
+  MODE_ACTION='place';SLIDE_FROM=null;
+  S.phase='human';
+  render();
 }
-
-function selectSlide(fromKey){
-  if(!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='slide')return;
-  const t=S.valley.get(fromKey);if(!t||t.covered)return;
-  if(slideCands(S.valley,fromKey).length===0){toast('Questa tessera non può muoversi');return}
-  SLIDE_FROM=fromKey;render();
-}
-function executeSlide(toKey){
-  if(!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='slide'||!SLIDE_FROM)return;
-  if(!canSlide(S.valley,SLIDE_FROM,toKey))return;
-  const tile=S.valley.get(SLIDE_FROM);
-  S.valley.delete(SLIDE_FROM);S.valley.set(toKey,tile);
-  SLIDE_FROM=null;S.phase='done';
-  resolveClosures(curIdx());
-}
-
-function resolveClosures(closerIdx){
-  const closures=checkClosures(S.valley);
-  if(closures.length){S.pending=closures;showNextClosure(closerIdx);}
-  else afterAction();
-}
-function showNextClosure(closerIdx){
-  if(!S.pending.length){afterAction();return}
-  const cl=S.pending.shift();
-  const pts=cl.shape.pts+cl.faunos;
-  S.players[closerIdx].score+=pts;
-  cl.cells.forEach(([q,r])=>{const t=S.valley.get(key(q,r));if(t)t.covered=true});
-  S.log.push({by:S.players[closerIdx].name,terr:cl.terr,shape:cl.shape.name,pts,faunos:cl.faunos});
-  let body='<div class="card">'
-    +'<h2>'+TEMOJI[cl.terr]+' '+TNAME[cl.terr]+' — '+cl.shape.name+'</h2>'
-    +'<div class="d">'+S.players[closerIdx].name+' guadagna <b style="color:var(--ocra)">'+pts+' punti</b>'
-    +(cl.faunos?' (inclusi '+cl.faunos+' Faùno 🦌)':'')+'</div>'
-    +'<div style="margin-top:8px;font-size:12px;color:var(--ink2)">Classifica attuale:</div>'
-    +'<div style="margin-top:4px">'+S.players.map(p=>'<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:12px"><span>'+p.name+'</span><b>'+p.score+' pt</b></div>').join('')+'</div>'
-    +'</div>';
-  $('closureBody').innerHTML=body;
-  sync();render();
-  show('closureOvl');
-  // chiusura pendente passa il closerIdx via closure
-  $('closureOk').onclick=()=>{hide('closureOvl');showNextClosure(closerIdx)};
-}
-function afterAction(){
+function advance(){
+  if(gameOver()){S.over=true;buildEnd();show('endOvl');render();return}
   S.seat++;
-  if(S.seat>=S.np){
-    if(S.round>=ROUNDS){endGame();return}
-    S.round++;S.seat=0;
-  }
-  sync();
-  if(MODE==='local')showPass();
-  else{S.phase='play';MODE_ACTION='place';SLIDE_FROM=null;sync();render()}
+  if(S.seat>=S.np){S.round++;S.seat=0}
+  if(gameOver()){S.over=true;buildEnd();show('endOvl');render();return}
+  const pi=curIdx();
+  render();
+  if(S.players[pi].isBot){
+    if(window.SIM){botTurn(pi)}
+    else setTimeout(()=>botTurn(pi),650);
+  }else startHumanTurn();
 }
-function endGame(){
-  S.phase='end';sync('done');buildEnd();show('endOvl');
+function humanPlace(q,r){
+  if(S.phase!=='human'||MODE_ACTION!=='place'||!DRAWN)return;
+  const k=key(q,r);
+  if(!placeCells(S.valley).includes(k))return;
+  const t=DRAWN;DRAWN=null;
+  const events=doPlace(k,t,curIdx());
+  S.phase='idle';
+  if(events.length)showFreezes(events,()=>advance());
+  else advance();
+}
+function humanSlide(toK){
+  if(S.phase!=='human'||MODE_ACTION!=='slide'||!SLIDE_FROM)return;
+  if(!canSlide(S.valley,SLIDE_FROM,toK))return;
+  const events=doSlide(SLIDE_FROM,toK,curIdx());
+  SLIDE_FROM=null;S.phase='idle';
+  if(events.length)showFreezes(events,()=>advance());
+  else advance();
+}
+function showFreezes(events,cb){
+  let h='';
+  for(const e of events){
+    h+='<div class="card"><h2>'+TEMOJI[e.biome]+' '+TNAME[e.biome]+' — Livello '+(e.level+1)+' ('+e.size+' tessere)</h2>';
+    h+='<div class="d">Congelata da <b>'+PNAMES[e.by]+'</b> (bonus +'+e.bonus+')</div><div style="margin-top:6px">';
+    for(const[pi,n]of Object.entries(e.contrib))
+      h+='<div class="netrow"><span><span class="chip" style="background:'+PCOLORS[pi]+'"></span>'+PNAMES[pi]+'</span><b>+'+(n*PTS_PER_TILE)+'</b></div>';
+    h+='</div></div>';
+  }
+  h+='<div class="card"><div class="d">'+S.players.map(p=>p.name+': <b>'+p.score+'</b>').join(' · ')+'</div></div>';
+  $('freezeBody').innerHTML=h;
+  $('freezeOk').onclick=()=>{hide('freezeOvl');cb&&cb()};
+  show('freezeOvl');render();
 }
 function buildEnd(){
   const rank=S.players.slice().sort((a,b)=>b.score-a.score);
-  let h='<div class="card"><h2>Classifica finale</h2>'
-    +rank.map((p,i)=>'<div style="display:flex;justify-content:space-between;padding:3px 0"><span>'+(i+1)+'. '+p.name+'</span><b>'+p.score+' pt</b></div>').join('')+'</div>';
-  if(S.log.length){
-    h+='<div class="card"><h2>Biomi chiusi ('+S.log.length+')</h2>';
-    S.log.forEach(r=>{h+='<div style="padding:3px 0;border-bottom:1px solid var(--line);font-size:11px">'
-      +TEMOJI[r.terr]+' <b>'+r.shape+'</b> · '+r.pts+'pt → '+r.by+'</div>'});
-    h+='</div>';
-  }
+  let h='<div class="card"><h2>Classifica</h2>'+rank.map((p,i)=>'<div class="netrow"><span><span class="chip" style="background:'+p.color+'"></span>'+(i+1)+'. '+p.name+'</span><b>'+p.score+' pt</b></div>').join('')+'</div>';
+  h+='<div class="card"><h2>Congelamenti ('+S.log.length+')</h2>';
+  S.log.forEach(e=>{h+='<div class="netrow"><span>R'+e.round+' '+TEMOJI[e.biome]+' L'+(e.level+1)+' ('+e.size+')</span><span>'+PNAMES[e.by]+'</span></div>'});
+  h+='</div>';
   $('endBody').innerHTML=h;
 }
 
@@ -495,238 +437,222 @@ function buildEnd(){
 const $=id=>document.getElementById(id);
 const show=id=>$(id).classList.add('on');
 const hide=id=>$(id).classList.remove('on');
-function toast(msg){const t=$('toast');t.textContent=msg;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,2400)}
+function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,2000)}
 function hexPts(cx,cy,s){const p=[];for(let k=0;k<6;k++){const a=Math.PI/180*(60*k-30);p.push([cx+s*Math.cos(a),cy+s*Math.sin(a)])}return p}
-function tileSVG(tile,cx,cy,s,hilite){
+function wedgesFor(biomes){
+  /* assegna i 6 spicchi ai biomi */
+  if(biomes.length===1)return[0,0,0,0,0,0];
+  if(biomes.length===2)return[0,0,0,1,1,1];
+  if(biomes.length===3)return[0,0,1,1,2,2];
+  return[0,0,1,1,2,3];
+}
+function tileSVG(t,cx,cy,s,hilite){
   const c=hexPts(cx,cy,s);let g='';
-  if(tile.covered){
-    for(let i=0;i<6;i++){const p1=c[i],p2=c[(i+1)%6];
-      g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="#2a2f25" stroke="#2a2f25" stroke-width=".5"/>'}
-    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+TCOL[tile.edges[0]]+'" stroke-width="2"/>';
-    g+='<text x="'+cx+'" y="'+(cy+s*.2)+'" font-size="'+(s*.55)+'" text-anchor="middle">'+TEMOJI[tile.edges[0]]+'</text>';
-    return g;
+  const w=wedgesFor(t.biomes);
+  const frozen=t.frozenFor.length>0;
+  for(let i=0;i<6;i++){
+    const col=TCOL[t.biomes[w[i]]];
+    const p1=c[i],p2=c[(i+1)%6];
+    g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="'+col+'" stroke="'+col+'" stroke-width=".5"'+(frozen?' opacity=".45"':'')+'/>';
   }
-  for(let i=0;i<6;i++){const p1=c[i],p2=c[(i+1)%6];
-    g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="'+TCOL[tile.edges[i]]+'" stroke="'+TCOL[tile.edges[i]]+'" stroke-width=".5"/>'}
-  const sc=hilite?'#D9A441':'#1c1f19',sw=hilite?2.8:1.6;
-  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+sc+'" stroke-width="'+sw+'"/>';
-  if(tile.guest==='fauno'){
-    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.38)+'" fill="rgba(20,22,17,.75)"/>';
-    g+='<text x="'+cx+'" y="'+(cy+s*.14)+'" font-size="'+(s*.46)+'" text-anchor="middle">🦌</text>';
+  const stroke=hilite?'#D9A441':frozen?'#D9A441':'#1c1f19';
+  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+stroke+'" stroke-width="'+(hilite?2.8:frozen?2.2:1.5)+'"'+(frozen?' stroke-dasharray="2 2"':'')+'/>';
+  /* token proprietario */
+  if(t.owner!==null){
+    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.22)+'" fill="'+PCOLORS[t.owner]+'" stroke="#1c1f19" stroke-width="1"/>';
+  }
+  /* biomi congelati */
+  if(frozen){
+    const fr=t.frozenFor.map(b=>TEMOJI[b]).join('');
+    g+='<text x="'+cx+'" y="'+(cy-s*.45)+'" font-size="'+(s*.34)+'" text-anchor="middle">'+fr+'</text>';
   }
   return g;
 }
-function miniTile(tile){
+function miniTile(t){
   const s=22;
-  return '<svg width="'+(s*2)+'" height="'+(s*2)+'" viewBox="'+(-s*1.1)+' '+(-s*1.1)+' '+(s*2.2)+' '+(s*2.2)+'">'+tileSVG(tile,0,0,s,false)+'</svg>';
+  return '<svg width="'+(s*2)+'" height="'+(s*2)+'" viewBox="'+(-s*1.1)+' '+(-s*1.1)+' '+(s*2.2)+' '+(s*2.2)+'">'+tileSVG(t,0,0,s,false)+'</svg>';
 }
 
-/* BMETA per hit-test */
 const BMETA={};
 function axialRound(qf,rf){
   let sf=-qf-rf,q=Math.round(qf),r=Math.round(rf),s2=Math.round(sf);
   const dq=Math.abs(q-qf),dr=Math.abs(r-rf),ds=Math.abs(s2-sf);
   if(dq>dr&&dq>ds)q=-r-s2;else if(dr>ds)r=-q-s2;return[q,r];
 }
-function hitHex(elId,cx,cy){
-  const m=BMETA[elId];if(!m)return null;
-  const el=$(elId);const svg=el&&el.querySelector('svg');if(!svg)return null;
+function hitHex(cx,cy){
+  const m=BMETA.boardV;if(!m)return null;
+  const svg=$('boardV').querySelector('svg');if(!svg)return null;
   const rect=svg.getBoundingClientRect();if(!rect.width)return null;
   const[vx,vy,vw,vh]=m.vb;const sc=Math.min(rect.width/vw,rect.height/vh);
   const ox=(rect.width-vw*sc)/2,oy=(rect.height-vh*sc)/2;
   const px=(cx-rect.left-ox)/sc+vx,py=(cy-rect.top-oy)/sc+vy;
   const rf=2*py/(3*m.s),qf=(Math.sqrt(3)/3*px-py/3)/m.s;
   const[q,r]=axialRound(qf,rf);const k=key(q,r);
-  if(m.place&&m.place.has(k))return{type:'place',q,r};
-  if(m.tiles&&m.tiles.has(k))return{type:'tile',q,r,k};
+  if(m.place.has(k))return{type:'place',q,r,k};
+  if(S.valley.has(k))return{type:'tile',q,r,k};
   return null;
 }
 
 function renderBoard(){
-  const el=$('boardV');if(!el)return;
+  const el=$('boardV');if(!el||!S)return;
   const s=30,valley=S.valley;
-  const cells=[...valley.keys()].map(k=>k.split(',').map(Number));
-  const seen=new Set(valley.keys());const placeCands=[];
-  const mine=isMyTurn()&&S.phase==='play'&&MODE_ACTION==='place';
-  if(mine){for(const[q,r]of cells)for(const[dq,dr]of DIRS){const nk=key(q+dq,r+dr);
-    if(!seen.has(nk)){seen.add(nk);placeCands.push([q+dq,r+dr])}}
-  /* filtra: almeno 2 vicini occupati (eccetto valle con 1 sola tessera) */
-  const filtered=valley.size<=1?placeCands:placeCands.filter(([q,r])=>
-    DIRS.filter(([dq,dr])=>valley.has(key(q+dq,r+dr))).length>=2);
-  placeCands.length=0;filtered.forEach(c=>placeCands.push(c));}
-  /* slide cands */
-  const slideCandSet=new Set();
-  if(isMyTurn()&&S.phase==='play'&&MODE_ACTION==='slide'&&SLIDE_FROM)
-    slideCands(valley,SLIDE_FROM).forEach(k=>slideCandSet.add(k));
-  const all=cells.concat(placeCands);
+  const cells=[...valley.keys()];
+  const human=S.phase==='human';
+  const pc=human&&MODE_ACTION==='place'?placeCells(valley):[];
+  const sCands=human&&MODE_ACTION==='slide'&&SLIDE_FROM?slideCands(valley,SLIDE_FROM):[];
+  const allK=cells.concat(pc).concat(sCands);
   let mnX=1e9,mnY=1e9,mxX=-1e9,mxY=-1e9;
-  for(const[q,r]of all){const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;
+  for(const k of allK){const[q,r]=unkey(k);
+    const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;
     mnX=Math.min(mnX,x);mxX=Math.max(mxX,x);mnY=Math.min(mnY,y);mxY=Math.max(mxY,y)}
-  const pad=s*1.6;
-  BMETA['boardV']={s,vb:[mnX-pad,mnY-pad,mxX-mnX+2*pad,mxY-mnY+2*pad],
-    place:new Set(placeCands.map(c=>key(c[0],c[1]))),tiles:new Set(valley.keys())};
+  const pad=s*3;
+  BMETA.boardV={s,vb:[mnX-pad,mnY-pad,mxX-mnX+2*pad,mxY-mnY+2*pad],place:new Set(pc)};
   let svg='<svg class="board" viewBox="'+(mnX-pad)+' '+(mnY-pad)+' '+(mxX-mnX+2*pad)+' '+(mxY-mnY+2*pad)+'" preserveAspectRatio="xMidYMid meet">';
-  for(const[q,r]of cells){
-    const k=key(q,r);const t=valley.get(k);
-    const hi=(MODE_ACTION==='slide'&&k===SLIDE_FROM);
-    svg+=tileSVG(t,s*Math.sqrt(3)*(q+r/2),s*1.5*r,s,hi);
-  }
-  if(mine){for(const[q,r]of placeCands){const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
-    svg+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(217,164,65,.12)" stroke="#D9A441" stroke-width="1.5" stroke-dasharray="4 3"/>'}}
-  if(slideCandSet.size){for(const nk of slideCandSet){const[q,r]=nk.split(',').map(Number);
+  for(const k of cells){const[q,r]=unkey(k);
+    svg+=tileSVG(valley.get(k),s*Math.sqrt(3)*(q+r/2),s*1.5*r,s,k===SLIDE_FROM)}
+  for(const k of pc){const[q,r]=unkey(k);
     const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
-    svg+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(76,183,133,.2)" stroke="#4cb785" stroke-width="1.5" stroke-dasharray="4 3"/>'}}
+    svg+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(217,164,65,.12)" stroke="#D9A441" stroke-width="1.5" stroke-dasharray="4 3"/>'}
+  for(const k of sCands){const[q,r]=unkey(k);
+    const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;const c=hexPts(x,y,s*.92);
+    svg+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(76,183,133,.2)" stroke="#4cb785" stroke-width="1.5" stroke-dasharray="4 3"/>'}
   svg+='</svg>';el.innerHTML=svg;
 }
 
 function render(){
-  if(!S||S.phase==='pass')return;
-  const mine=isMyTurn(),p=curP(),my=me();
-  $('rndLbl').textContent='R'+S.round+'/'+ROUNDS;
-  const who=mine?'<b>Tocca a te</b>':'<b>'+p.name+'</b>';
-  const slideHint=SLIDE_FROM?(mine?' → tocca casella verde':''):(mine?' → tocca tessera':'');
-  const phMsg={
-    play:mine?(MODE_ACTION==='place'?who+' · <b>Piazza</b> o <b>Sposta</b>':who+' · <b>Sposta</b>'+slideHint):who+' · sta giocando…',
-    done:'…',end:'Fine'};
-  $('phaseTxt').innerHTML=phMsg[S.phase]||'';
-  $('ptsTxt').textContent=S.players.map(pl=>pl.name.split(' ').pop()+': '+pl.score).join(' · ');
+  if(!S)return;
+  $('rndLbl').textContent='R'+S.round+'/'+MAX_ROUNDS+' · mazzo '+S.deck.length;
+  const pi=curIdx();
+  const human=S.phase==='human';
+  $('phaseTxt').innerHTML=human
+    ?'<b>Tocca a te</b> · '+(MODE_ACTION==='place'?'piazza la tessera':'sposta'+(SLIDE_FROM?' → casella verde':' → tocca tessera'))
+    :(S.over?'Partita finita':'<b>'+PNAMES[pi]+'</b> sta giocando…');
+  $('ptsTxt').textContent=S.players.map(p=>p.name.replace('Bot ','')+':'+p.score).join(' ');
   renderBoard();
-  /* forme */
-  let fh='';
-  for(const[terr,shapes]of Object.entries(SHAPES)){
-    fh+='<div class="card"><h2>'+TEMOJI[terr]+' '+TNAME[terr]+'</h2><div class="shapes">';
-    shapes.forEach(sh=>{fh+='<div class="shape-row"><span>'+sh.name+' ('+sh.cells.length+' hex)</span><span class="pts">'+sh.pts+' pt<span style="color:var(--ink2);font-weight:400"> +🦌</span></span></div>'});
-    fh+='</div></div>';
+  /* tab Reti */
+  let rh='';
+  for(const b of BIOMES){
+    const done=S.thIdx[b]>=THRESHOLDS.length;
+    rh+='<div class="card"><h2>'+TEMOJI[b]+' '+TNAME[b]+' · '+(done?'completato':'soglia '+THRESHOLDS[S.thIdx[b]]+' (L'+(S.thIdx[b]+1)+')')+'</h2>';
+    if(!done){
+      const groups=networks(S.valley,b).sort((a,bb)=>bb.length-a.length).slice(0,4);
+      if(!groups.length)rh+='<div class="d">Nessuna rete attiva</div>';
+      for(const g of groups){
+        const cnt={};
+        for(const kk of g){const t=S.valley.get(kk);if(t.owner!==null)cnt[t.owner]=(cnt[t.owner]||0)+1}
+        rh+='<div class="netrow"><span>'+g.length+'/'+THRESHOLDS[S.thIdx[b]]+' tessere</span><span>'
+          +Object.entries(cnt).map(([o,n])=>'<span class="chip" style="background:'+PCOLORS[o]+'"></span>'+n).join(' ')+'</span></div>';
+      }
+    }
+    rh+='</div>';
   }
-  $('vForme').innerHTML=fh;
-  /* punti */
+  $('vReti').innerHTML=rh;
+  /* tab Punti */
   let ph='<table><tr><th>Giocatore</th><th>Punti</th></tr>';
-  S.players.forEach(pl=>{ph+='<tr><td>'+pl.name+'</td><td><b>'+pl.score+'</b></td></tr>'});
+  S.players.forEach(p=>{ph+='<tr><td><span class="chip" style="background:'+p.color+'"></span>'+p.name+'</td><td><b>'+p.score+'</b></td></tr>'});
   ph+='</table>';
-  if(S.log.length){ph+='<div class="card"><h2>Biomi chiusi ('+S.log.length+')</h2>';
-    S.log.slice().reverse().forEach(r=>{ph+='<div style="padding:3px 0;border-bottom:1px solid var(--line);font-size:11px">'+TEMOJI[r.terr]+' <b>'+r.shape+'</b> +'+r.pts+'pt → '+r.by+(r.faunos?' 🦌×'+r.faunos:'')+'</div>'});
+  if(S.log.length){ph+='<div class="card"><h2>Congelamenti</h2>';
+    S.log.slice().reverse().forEach(e=>{ph+='<div class="netrow"><span>R'+e.round+' '+TEMOJI[e.biome]+' L'+(e.level+1)+' ('+e.size+' tess.)</span><span>'+PNAMES[e.by]+' +'+e.bonus+'</span></div>'});
     ph+='</div>'}
   $('vPunti').innerHTML=ph;
   /* mano */
   const hd=$('hand');
-  if(S.phase==='play'){
-    const handP=mine?my:p;
-    let hh='<div class="ctr"><span class="lbl">'+(mine?'Mano · scegli azione':'Attendi '+p.name+'…')+'</span><div class="btns">';
-    if(mine){
-      hh+='<button class="btn'+(MODE_ACTION==='place'?' act':'')+'" data-act="mode_place">Piazza</button>';
-      hh+='<button class="btn'+(MODE_ACTION==='slide'?' act':'')+'" data-act="mode_slide">Sposta</button>';
-      if(MODE_ACTION==='place')hh+='<button class="btn" data-act="rot">↻</button>';
-      if(MODE_ACTION==='slide'&&SLIDE_FROM)hh+='<button class="btn warn" data-act="cancel_slide">✕</button>';
-    }
-    hh+='</div></div><div class="row">';
-    handP.hand.forEach((t,i)=>{
-      hh+='<div class="slot'+(i===SEL&&mine&&MODE_ACTION==='place'?' sel':'')+'" data-i="'+i+'"'+(mine?'':' style="opacity:.4"')+'>'+miniTile(t)+'</div>';
-    });
-    hh+='</div>';
+  if(human&&DRAWN){
+    let hh='<div class="ctr"><div class="drawn"><div class="slot" id="drawnSlot">'+miniTile(DRAWN)+'</div>'
+      +'<span class="lbl">'+DRAWN.biomes.map(b=>TNAME[b]).join('+')+'</span></div><div class="btns">';
+    hh+='<button class="btn'+(MODE_ACTION==='place'?' act':'')+'" data-act="place">Piazza</button>';
+    hh+='<button class="btn'+(MODE_ACTION==='slide'?' act':'')+'" data-act="slide">Scarta e sposta</button>';
+    if(MODE_ACTION==='slide'&&SLIDE_FROM)hh+='<button class="btn warn" data-act="unslide">✕</button>';
+    hh+='</div></div>';
     hd.innerHTML=hh;hd.style.display='block';
-  }else hd.style.display='none';
+  }else if(human){hd.innerHTML='<div class="lbl">…</div>';hd.style.display='block'}
+  else hd.style.display='none';
 }
-
 function setView(v){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  ['vValle','vForme','vPunti'].forEach(id=>$(id).classList.remove('on'));
-  $({valle:'vValle',forme:'vForme',punti:'vPunti'}[v]).classList.add('on');
+  ['vValle','vReti','vPunti'].forEach(id=>$(id).classList.remove('on'));
+  $({valle:'vValle',reti:'vReti',punti:'vPunti'}[v]).classList.add('on');
   if(v==='valle')setTimeout(render,0);
 }
 
-/* ===== DRAG & DROP ===== */
-let DRAG=null,HOT=null,PEND=null,lastDrop=0;
-function dragStart(i,x,y){
-  if(!S||!isMyTurn()||S.phase!=='play'||MODE_ACTION!=='place')return;
-  const t=me().hand[i];if(!t)return;
-  SEL=i;
+/* ===== DRAG ===== */
+let DRAG=null,PEND=null,lastDrop=0;
+function dragStart(x,y){
+  if(!S||S.phase!=='human'||MODE_ACTION!=='place'||!DRAWN)return;
   const g=document.createElement('div');
   g.style.cssText='position:fixed;z-index:300;pointer-events:none;transform:translate(-50%,-80%) scale(1.5);filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))';
-  g.innerHTML=miniTile(t);document.body.appendChild(g);
-  DRAG={i,g};dragMove(x,y);
-}
-function dragMove(x,y){
-  if(!DRAG)return;
-  DRAG.g.style.left=x+'px';DRAG.g.style.top=y+'px';
-  if(HOT){HOT.setAttribute('fill','rgba(217,164,65,.12)');HOT=null}
-  const hit=hitHex('boardV',x,y);
-  if(hit?.type==='place'){
-    const svg=$('boardV')?.querySelector('svg');if(!svg)return;
-    const qx=30*Math.sqrt(3)*(hit.q+hit.r/2),qy=30*1.5*hit.r;
-    const p=[...svg.querySelectorAll('path[stroke-dasharray]')].find(p=>{
-      const m=(p.getAttribute('d')||'').match(/M([\d.\-]+) ([\d.\-]+)/);
-      return m&&Math.abs(+m[1]-qx)<38&&Math.abs(+m[2]-qy)<38;
-    });
-    if(p){p.setAttribute('fill','rgba(217,164,65,.5)');HOT=p}
-  }
-}
-function dragEnd(x,y){
-  if(!DRAG)return;
-  DRAG.g.remove();const i=DRAG.i;DRAG=null;
-  if(HOT){HOT.setAttribute('fill','rgba(217,164,65,.12)');HOT=null}
-  PEND=null;
-  if(Date.now()-lastDrop<400)return;
-  const hit=hitHex('boardV',x,y);
-  if(hit?.type==='place'){lastDrop=Date.now();SEL=i;placeAt(hit.q,hit.r)}
-  else render();
+  g.innerHTML=miniTile(DRAWN);document.body.appendChild(g);
+  DRAG={g};g.style.left=x+'px';g.style.top=y+'px';
 }
 document.addEventListener('pointermove',e=>{
-  if(DRAG){e.preventDefault();dragMove(e.clientX,e.clientY);return}
+  if(DRAG){e.preventDefault();DRAG.g.style.left=e.clientX+'px';DRAG.g.style.top=e.clientY+'px';return}
   if(PEND){const dx=e.clientX-PEND.x,dy=e.clientY-PEND.y;
-    if(dx*dx+dy*dy>64){const p2=PEND;PEND=null;dragStart(p2.i,e.clientX,e.clientY)}}
+    if(dx*dx+dy*dy>64){PEND=null;dragStart(e.clientX,e.clientY)}}
 },{passive:false});
-document.addEventListener('pointerup',e=>{PEND=null;if(DRAG)dragEnd(e.clientX,e.clientY)});
+document.addEventListener('pointerup',e=>{
+  PEND=null;
+  if(DRAG){DRAG.g.remove();DRAG=null;
+    if(Date.now()-lastDrop<400)return;
+    const hit=hitHex(e.clientX,e.clientY);
+    if(hit&&hit.type==='place'){lastDrop=Date.now();humanPlace(hit.q,hit.r)}}
+});
 document.addEventListener('pointercancel',()=>{if(DRAG){DRAG.g.remove();DRAG=null}PEND=null});
 
 /* ===== CABLAGGIO ===== */
 $('setup').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.local)newLocal(+b.dataset.local);
-  else if(b.dataset.room)createRoom(+b.dataset.room);
+  const b=e.target.closest('button');if(!b||!b.dataset.bots)return;
+  newGame(+b.dataset.bots);
+  $('setup').style.display='none';
+  startHumanTurn();
 });
-$('joinBtn').addEventListener('click',joinRoom);
-$('startBtn').addEventListener('click',startTurn);
-$('endExit').addEventListener('click',()=>location.reload());
 document.getElementById('tabs').addEventListener('click',e=>{
   const b=e.target.closest('button');if(b&&b.dataset.v)setView(b.dataset.v);
 });
-/* tap sulla Valle */
+$('endExit').addEventListener('click',()=>location.reload());
 $('boardV').addEventListener('click',e=>{
-  if(!S||!isMyTurn()||S.phase!=='play')return;
-  const hit=hitHex('boardV',e.clientX,e.clientY);if(!hit)return;
-  if(MODE_ACTION==='slide'){
-    if(!SLIDE_FROM){if(hit.type==='tile')selectSlide(hit.k)}
-    else{
-      if(hit.type==='tile'&&hit.k===SLIDE_FROM){SLIDE_FROM=null;render()}
-      else if(hit.type==='tile'){
-        /* prova a scivolare nella casella del tile: non valido, segnala */
-        toast('Non puoi: casella occupata');
-      }else{
-        /* hit è una casella verde candidata */
-        executeSlide(key(hit.q,hit.r));
+  if(!S||S.phase!=='human')return;
+  if(Date.now()-lastDrop<500)return;
+  const hit=hitHex(e.clientX,e.clientY);if(!hit)return;
+  if(MODE_ACTION==='place'){
+    if(hit.type==='place'){lastDrop=Date.now();humanPlace(hit.q,hit.r)}
+  }else{
+    if(!SLIDE_FROM){
+      if(hit.type==='tile'){
+        const t=S.valley.get(hit.k);
+        if(t.frozenFor.length>0){toast('Tessera pietrificata');return}
+        if(!slideCands(S.valley,hit.k).length){toast('Non può muoversi');return}
+        SLIDE_FROM=hit.k;render();
       }
+    }else{
+      if(hit.k===SLIDE_FROM){SLIDE_FROM=null;render()}
+      else if(hit.type!=='tile')humanSlide(hit.k);
     }
-  }else if(MODE_ACTION==='place'){
-    if(hit.type==='place'){lastDrop=Date.now();placeAt(hit.q,hit.r)}
   }
 });
-/* mano */
 $('hand').addEventListener('pointerdown',e=>{
-  const sl=e.target.closest('.slot');
-  if(sl){e.currentTarget.setPointerCapture&&e.currentTarget.setPointerCapture(e.pointerId);
-    PEND={i:+sl.dataset.i,x:e.clientX,y:e.clientY}}
+  if(e.target.closest('#drawnSlot'))PEND={x:e.clientX,y:e.clientY};
 });
 $('hand').addEventListener('click',e=>{
-  if(Date.now()-lastDrop<500)return;
-  const sl=e.target.closest('.slot');
-  if(sl&&S&&isMyTurn()&&S.phase==='play'&&MODE_ACTION==='place'){SEL=+sl.dataset.i;render();return}
-  const b=e.target.closest('button');if(!b||b.disabled)return;
-  const act=b.dataset.act;
-  if(act==='mode_place'){MODE_ACTION='place';SLIDE_FROM=null;render()}
-  else if(act==='mode_slide'){MODE_ACTION='slide';SLIDE_FROM=null;render()}
-  else if(act==='rot'){const t=me().hand[SEL];if(t){t.edges.unshift(t.edges.pop());delete t._r;render()}}
-  else if(act==='cancel_slide'){SLIDE_FROM=null;render()}
+  const b=e.target.closest('button');if(!b)return;
+  const a=b.dataset.act;
+  if(a==='place'){MODE_ACTION='place';SLIDE_FROM=null;render()}
+  else if(a==='slide'){MODE_ACTION='slide';SLIDE_FROM=null;render();toast('La tessera pescata sarà scartata')}
+  else if(a==='unslide'){SLIDE_FROM=null;render()}
 });
+/* SIM hook per test headless */
+window.__sim=function(nBots){
+  window.SIM=true;newGame(nBots);
+  /* trasforma anche il giocatore 0 in bot */
+  S.players[0].isBot=true;
+  let guard=0;
+  while(!S.over&&guard++<400){
+    const pi=curIdx();
+    if(!S.deck.length){S.over=true;break}
+    botTurn(pi);
+    if(gameOver())S.over=true;
+  }
+  return{rounds:S.round,scores:S.players.map(p=>p.score),log:S.log,deckLeft:S.deck.length};
+};
 </script>
 </body>
 </html>
