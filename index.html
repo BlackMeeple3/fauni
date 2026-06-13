@@ -9,7 +9,7 @@
 :root{--bg:#23271F;--panel:#2E3329;--panel2:#383E32;--line:#4A5142;--ink:#EAE3CF;--ink2:#A8A28C;--ocra:#D9A441;--rosso:#C4574A}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;touch-action:manipulation}
-body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Segoe UI,sans-serif;display:flex;flex-direction:column}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Segoe UI,sans-serif;display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh}
 #hdr{padding:7px 12px 5px;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;display:flex;justify-content:space-between;align-items:center}
 #hdr .t{font-size:15px;color:var(--ocra);font-family:Georgia,serif}
 #hdr .rnd{font-size:11px;color:var(--ink2)}
@@ -21,10 +21,10 @@ body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Segoe UI
 #main{flex:1;overflow:hidden;position:relative;min-height:0}
 .view{position:absolute;inset:0;display:none;overflow:auto}
 .view.on{display:block}
-#vValle{flex-direction:column}
-#vValle.on{display:flex;flex-direction:column}
-#sidebar{display:flex;gap:5px;padding:5px 8px;flex-shrink:0;overflow-x:auto;background:var(--panel)}
-#boardV{flex:1;min-height:0;width:100%}
+#vValle.on{display:block}
+#sidebar{position:absolute;top:4px;left:4px;right:4px;display:flex;gap:5px;overflow-x:auto;z-index:5;pointer-events:none}
+#sidebar .scorecard{pointer-events:auto}
+#boardV{width:100%;height:100%}
 .scorecard{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:3px 8px;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
 .scorecard .nm{font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px}
 .scorecard .sc{font-size:15px;font-weight:700;font-family:Georgia,serif}
@@ -81,7 +81,7 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 
 <div id="setup">
   <h1>Il Regno dei Faùni</h1>
-  <p>Lab v3.1 · ognuno ha un bioma segreto-assegnato e insegue 3 traguardi (4→5→6 tessere continue del suo bioma). Tu sei <b style="color:#F2EFE4">Bianco</b>.</p>
+  <p>Lab v3.2 · ognuno ha un bioma segreto-assegnato e insegue 3 traguardi (4→5→6 tessere continue del suo bioma). Tu sei <b style="color:#F2EFE4">Bianco</b>.</p>
   <div class="pc">
     <button class="btn gold" data-bots="3">Tu vs 3 bot</button>
     <button class="btn" data-bots="2">Tu vs 2</button>
@@ -97,7 +97,7 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 </div>
 
 <div id="hdr">
-  <span class="t">Il Regno dei Faùni <span style="font-size:10px;color:var(--ink2)">v3.1</span></span>
+  <span class="t">Il Regno dei Faùni <span style="font-size:10px;color:var(--ink2)">v3.2</span></span>
   <span class="rnd" id="rndLbl"></span>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:10px;color:var(--ink2)"></span></div>
