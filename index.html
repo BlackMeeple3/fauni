@@ -21,7 +21,19 @@ body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Segoe UI
 #main{flex:1;overflow:hidden;position:relative;min-height:0}
 .view{position:absolute;inset:0;display:none;overflow:auto}
 .view.on{display:block}
-#boardV{width:100%;height:100%}
+#vValle{display:flex;flex-direction:column}
+#vValle.on{display:flex}
+#sidebar{display:flex;gap:5px;padding:5px 8px;flex-shrink:0;overflow-x:auto;background:var(--panel)}
+#boardV{flex:1;min-height:0}
+.scorecard{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:3px 8px;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
+.scorecard .nm{font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px}
+.scorecard .sc{font-size:15px;font-weight:700;font-family:Georgia,serif}
+.scorecard .gl{font-size:9px;color:var(--ink2)}
+.scorecard.turn{border-color:var(--ocra)}
+#navbar{display:none;align-items:center;gap:4px;padding:5px 8px;background:var(--panel);border-top:1px solid var(--line);flex-shrink:0;justify-content:center}
+#navbar.on{display:flex}
+#navbar button{padding:5px 9px;font-size:12px}
+#navLabel{font-size:10px;color:var(--ink2);flex:1;text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 svg.board{width:100%;height:100%;display:block;touch-action:none}
 .tview{overflow:auto;padding-bottom:8px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;margin:8px 10px}
@@ -50,6 +62,8 @@ svg.board{width:100%;height:100%;display:block;touch-action:none}
 #setup p{color:var(--ink2);max-width:300px;font-size:12px}
 #setup .pc{display:flex;gap:8px;justify-content:center}
 #setup .pc button{padding:12px 18px;border-radius:9px;font-size:14px}
+#setup .blk{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px;width:100%;max-width:340px}
+#setup .blk h3{font-size:13px;margin-bottom:4px;color:var(--ocra)}
 table{width:calc(100% - 20px);margin:8px 10px;border-collapse:collapse;font-size:11px}
 td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--ink2);font-weight:600;font-size:10px}
@@ -67,16 +81,23 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 
 <div id="setup">
   <h1>Il Regno dei Faùni</h1>
-  <p>Lab v2.0 · reti globali, contributi, congelamento automatico. Tu sei <b style="color:#F2EFE4">Bianco</b>.</p>
+  <p>Lab v3.0 · ognuno ha un bioma segreto-assegnato e insegue 3 traguardi (4→5→6 tessere continue del suo bioma). Tu sei <b style="color:#F2EFE4">Bianco</b>.</p>
   <div class="pc">
     <button class="btn gold" data-bots="3">Tu vs 3 bot</button>
     <button class="btn" data-bots="2">Tu vs 2</button>
     <button class="btn" data-bots="1">Tu vs 1</button>
   </div>
+  <div class="blk" style="margin-top:10px"><h3>Modalità libera (sandbox)</h3>
+    <p style="margin-bottom:8px">Nessun bot, nessun turno, nessun punteggio automatico. Pieno controllo: piazza, sposta, ruota, marchia, congela e segna a mano.</p>
+    <div class="pc">
+      <button class="btn" data-sandbox="2">2 col.</button>
+      <button class="btn" data-sandbox="3">3 col.</button>
+      <button class="btn" data-sandbox="4">4 col.</button>
+    </div>
 </div>
 
 <div id="hdr">
-  <span class="t">Il Regno dei Faùni <span style="font-size:10px;color:var(--ink2)">v2.0</span></span>
+  <span class="t">Il Regno dei Faùni <span style="font-size:10px;color:var(--ink2)">v3.0</span></span>
   <span class="rnd" id="rndLbl"></span>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:10px;color:var(--ink2)"></span></div>
@@ -86,9 +107,20 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
   <button data-v="punti">Punti</button>
 </div>
 <div id="main">
-  <div class="view on" id="vValle"><div id="boardV"></div></div>
+  <div class="view on" id="vValle">
+    <div id="sidebar"></div>
+    <div id="boardV"></div>
+  </div>
   <div class="view tview" id="vReti"></div>
   <div class="view tview" id="vPunti"></div>
+</div>
+<div id="navbar">
+  <button class="btn" id="navFirst">⏮</button>
+  <button class="btn" id="navPrev">◀</button>
+  <span id="navLabel">—</span>
+  <button class="btn" id="navNext">▶</button>
+  <button class="btn" id="navLast">⏭</button>
+  <button class="btn warn" id="navUndo">↩ Undo</button>
 </div>
 <div id="hand"></div>
 
@@ -107,10 +139,11 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 <script>
 'use strict';
 /* ===== PARAMETRI DA TARARE ===== */
-const THRESHOLDS=[6,8,10];    // soglie L1,L2,L3 (tarate su 100 partite simulate)
-const FREEZE_BONUS=[2,3,4];    // bonus a chi esegue la mossa che congela
+const THRESHOLDS=[4,5,6];     // i 3 traguardi: rete continua da 4, poi 5, poi 6 tessere
+const GOAL_BONUS=[3,4,5];     // bonus traguardo L1,L2,L3 (sopra ai punti-costruttore)
 const PTS_PER_TILE=1;          // punti per ogni propria tessera nella rete
 const MIN_ADJ_AFTER=6;         // dopo N tessere servono 2 lati adiacenti
+const HAND_SIZE=4;             // tessere in mano
 const MAX_ROUNDS=25;
 
 /* ===== COSTANTI ===== */
@@ -121,24 +154,40 @@ const TEMOJI={selva:'🌲',pascolo:'🌿',torrente:'💧',borgo:'🏛️'};
 const PCOLORS=['#F2EFE4','#E0B341','#C4574A','#8E7CC3'];
 const PNAMES=['Tu','Bot Ocra','Bot Rosso','Bot Viola'];
 const DIRS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
+/* rotolamento: muovendo verso destra (dir 0,1,5 ~ semipiano destro) ruota orario,
+   verso sinistra antiorario. Implementazione: lo spostamento in direzione d
+   ruota gli spicchi di 1 passo; il segno dipende dal lato. */
+function dirIndex(fromK,toK){
+  const[fq,fr]=unkey(fromK),[tq,tr]=unkey(toK);
+  for(let i=0;i<6;i++)if(fq+DIRS[i][0]===tq&&fr+DIRS[i][1]===tr)return i;
+  return-1;
+}
+function rollEdges(t,fromK,toK){
+  const d=dirIndex(fromK,toK);if(d<0)return;
+  /* direzioni 0,1,2 = lato destro/basso -> orario; 3,4,5 -> antiorario */
+  if(d<=2)t.edges.unshift(t.edges.pop());  /* orario */
+  else t.edges.push(t.edges.shift());      /* antiorario */
+}
 
 /* ===== MAZZO ===== */
 let tid=0;
-const mk=b=>({id:++tid,biomes:b.slice(),owner:null,frozenFor:[]});
+const mk=e=>({id:++tid,edges:e.slice(),owner:null,frozenFor:[],frozenOwner:null});
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
 function buildDeck(){
   const d=[];
-  /* mono: rare (3 per bioma = 12) */
-  for(const b of BIOMES)for(let i=0;i<3;i++)d.push(mk([b]));
-  /* bi: 8 per coppia (6 coppie = 48) */
+  /* mono: rare (3 per bioma = 12) — 6 lati uguali */
+  for(const b of BIOMES)for(let i=0;i<3;i++)d.push(mk([b,b,b,b,b,b]));
+  /* bi: 8 per coppia (48) — 3+3 lati */
   const pairs=[];for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)pairs.push([BIOMES[i],BIOMES[j]]);
-  for(const p of pairs)for(let i=0;i<8;i++)d.push(mk(p));
-  /* tri: 4 per tripla (4 triple = 16) */
-  for(let skip=0;skip<4;skip++){const t=BIOMES.filter((_,i)=>i!==skip);for(let i=0;i<4;i++)d.push(mk(t))}
-  /* tetra: 8 */
-  for(let i=0;i<8;i++)d.push(mk(BIOMES.slice()));
+  for(const[a,b]of pairs)for(let i=0;i<8;i++)d.push(mk([a,a,a,b,b,b]));
+  /* tri: 4 per tripla (16) — 2+2+2 lati */
+  for(let skip=0;skip<4;skip++){const[a,b,c]=BIOMES.filter((_,i)=>i!==skip);
+    for(let i=0;i<4;i++)d.push(mk([a,a,b,b,c,c]))}
+  /* tetra: 8 — spicchi alternati a,b,c,d,a,c (simmetrico, no effetto cubo) */
+  for(let i=0;i<8;i++){const[a,b,c,e]=shuffle(BIOMES.slice());d.push(mk([a,b,c,e,a,c]))}
   return shuffle(d);
 }
+const tileBiomes=t=>[...new Set(t.edges)];
 
 /* ===== GEOMETRIA ===== */
 const key=(q,r)=>q+','+r;
@@ -146,18 +195,24 @@ const unkey=k=>k.split(',').map(Number);
 
 /* ===== RETI ===== */
 function networks(valley,biome){
-  /* gruppi connessi di tessere che contengono il bioma e non l'hanno già speso */
+  /* gruppi connessi per CONTINUITÀ DI LATO: due tessere adiacenti sono collegate
+     solo se i lati che condividono sono entrambi del bioma */
   const nodes=new Set();
   for(const[k,t]of valley)
-    if(t.biomes.includes(biome)&&!t.frozenFor.includes(biome))nodes.add(k);
+    if(t.edges.includes(biome)&&t.frozenFor.length===0)nodes.add(k);
   const vis=new Set();const groups=[];
   for(const start of nodes){
     if(vis.has(start))continue;
     const grp=[];const q=[start];vis.add(start);
     while(q.length){const k=q.shift();grp.push(k);
-      const[cq,cr]=unkey(k);
-      for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
-        if(nodes.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(nk)}}}
+      const[cq,cr]=unkey(k);const t=valley.get(k);
+      for(let i=0;i<6;i++){
+        if(t.edges[i]!==biome)continue;
+        const nk=key(cq+DIRS[i][0],cr+DIRS[i][1]);
+        if(!nodes.has(nk)||vis.has(nk))continue;
+        const nt=valley.get(nk);
+        if(nt.edges[(i+3)%6]===biome){vis.add(nk);q.push(nk)}
+      }}
     groups.push(grp);
   }
   return groups;
@@ -206,50 +261,111 @@ function placeCells(valley){
 
 /* ===== STATO ===== */
 let S=null;
-let MODE_ACTION='place',SLIDE_FROM=null,DRAWN=null;
+let MODE_ACTION='place',SLIDE_FROM=null,SEL=0;
+let HIST=[],HPTR=-1,REPLAY=false,LAST_FREEZE=null,LAST_SLOT_TAP=0,SANDBOX=false,PAINT=0,FREEZE_MODE=false;
+function snapshot(label){
+  /* deep clone dello stato per la cronologia */
+  const snap=JSON.parse(JSON.stringify({
+    valley:[...S.valley].map(([k,t])=>[k,t]),
+    players:S.players.map(p=>({score:p.score,biome:p.biome,hand:p.hand,name:p.name,color:p.color,isBot:p.isBot})),
+    goalIdx:S.goalIdx,round:S.round,seat:S.seat,deckLen:S.deck.length,
+    log:S.log,label:label||''
+  }));
+  HIST.push(snap);HPTR=HIST.length-1;
+}
+function restoreSnap(idx){
+  const snap=HIST[idx];if(!snap)return;
+  S.valley=new Map(snap.valley.map(([k,t])=>[k,t]));
+  snap.players.forEach((p,i)=>{S.players[i].score=p.score;S.players[i].hand=p.hand;});
+  S.goalIdx=snap.goalIdx.slice();
+  S.round=snap.round;S.seat=snap.seat;S.log=snap.log;
+  HPTR=idx;
+}
 function newGame(nBots){
   const np=nBots+1;
+  /* assegna un bioma a testa, a caso */
+  const pool=shuffle(BIOMES.slice());
   S={np,deck:buildDeck(),valley:new Map(),
     players:[],round:1,seat:0,phase:'idle',
-    thIdx:{selva:0,pascolo:0,torrente:0,borgo:0},
+    goalIdx:[],          /* livello-traguardo corrente per ogni giocatore */
     log:[],over:false};
-  S.valley.set(key(0,0),S.deck.pop());
-  for(let i=0;i<np;i++)S.players.push({name:PNAMES[i],color:PCOLORS[i],score:0,isBot:i>0});
+  /* tessera iniziale: tetrabioma simmetrico (spicchi alternati, no effetto cubo), neutra */
+  const initTile=mk([BIOMES[0],BIOMES[1],BIOMES[2],BIOMES[3],BIOMES[0],BIOMES[2]]);
+  initTile.owner=null;
+  S.valley.set(key(0,0),initTile);
+  for(let i=0;i<np;i++){
+    const p={name:PNAMES[i],color:PCOLORS[i],score:0,isBot:i>0,hand:[],biome:pool[i]};
+    for(let j=0;j<HAND_SIZE;j++)if(S.deck.length)p.hand.push(S.deck.pop());
+    S.players.push(p);
+    S.goalIdx.push(0);
+  }
 }
-const curIdx=()=>(S.round-1+S.seat)%S.np;
+function newGameSandbox(nCol){
+  S={np:nCol,deck:buildDeck(),valley:new Map(),players:[],round:1,seat:0,phase:'human',
+    goalIdx:[],log:[],over:false};
+  const initTile=mk([BIOMES[0],BIOMES[1],BIOMES[2],BIOMES[3],BIOMES[0],BIOMES[2]]);
+  initTile.owner=null;
+  S.valley.set(key(0,0),initTile);
+  for(let i=0;i<nCol;i++){
+    S.players.push({name:PNAMES[i],color:PCOLORS[i],score:0,isBot:false,hand:[],biome:BIOMES[i]});
+    S.goalIdx.push(0);
+  }
+  for(let j=0;j<HAND_SIZE;j++)if(S.deck.length)S.players[0].hand.push(S.deck.pop());
+  PAINT=0;
+}
+const curIdx=()=>S.seat;
 const curP=()=>S.players[curIdx()];
+/* indice del giocatore proprietario di un bioma (o -1 se neutro) */
+const ownerOf=b=>{const i=S.players.findIndex(p=>p.biome===b);return i;};
 
-/* ===== CONGELAMENTO ===== */
-function detectFreezes(valley,thIdx){
+/* ===== CONGELAMENTO =====
+   Una mossa puo' completare piu' reti (spicchi diversi). Per ogni bioma:
+   - trovo i gruppi che raggiungono la soglia ATTIVA del suo proprietario
+   - se il bioma e' neutro (nessun proprietario), non si congela mai
+   La soglia attiva di un bioma = THRESHOLDS[goalIdx del suo proprietario] */
+function detectFreezes(valley){
   const out=[];
   for(const b of BIOMES){
-    if(thIdx[b]>=THRESHOLDS.length)continue;
-    const need=THRESHOLDS[thIdx[b]];
+    const oi=ownerOf(b);
+    if(oi<0)continue;                       /* bioma neutro: mai */
+    if(S.goalIdx[oi]>=THRESHOLDS.length)continue; /* proprietario ha finito */
+    const need=THRESHOLDS[S.goalIdx[oi]];
     for(const grp of networks(valley,b))
-      if(grp.length>=need)out.push({biome:b,group:grp,level:thIdx[b]});
+      if(grp.length>=need)out.push({biome:b,group:grp,owner:oi,level:S.goalIdx[oi]});
   }
   return out;
 }
 function applyFreezes(freezes,moverIdx){
   const events=[];
   for(const f of freezes){
+    /* punti-costruttore: 1 per tessera, a chi l'ha piazzata */
     const contrib={};
     for(const k of f.group){
       const t=S.valley.get(k);
-      t.frozenFor.push(f.biome);
       if(t.owner!==null)contrib[t.owner]=(contrib[t.owner]||0)+1;
     }
-    const bonus=FREEZE_BONUS[f.level];
     for(const[pi,n]of Object.entries(contrib))S.players[pi].score+=n*PTS_PER_TILE;
-    S.players[moverIdx].score+=bonus;
-    S.thIdx[f.biome]++;
-    events.push({biome:f.biome,level:f.level,size:f.group.length,contrib,bonus,by:moverIdx,round:S.round});
+    /* traguardo: solo al proprietario del bioma, che e' esattamente a questo livello */
+    const goalBonus=GOAL_BONUS[f.level];
+    S.players[f.owner].score+=goalBonus;
+    S.goalIdx[f.owner]++;
+    /* congela: oscura, segna il bioma speso, RIMUOVE i token degli altri,
+       lascia solo il proprietario del bioma come marchio */
+    for(const k of f.group){
+      const t=S.valley.get(k);
+      t.frozenFor.push(f.biome);
+      t.frozenOwner=f.owner;     /* marchio del proprietario del bioma */
+      t.owner=null;              /* rimuove token di proprieta' per scoring futuro */
+    }
+    events.push({biome:f.biome,level:f.level,size:f.group.length,
+      contrib,goalBonus,owner:f.owner,by:moverIdx,round:S.round});
     S.log.push(events[events.length-1]);
   }
   return events;
 }
 function gameOver(){
-  if(BIOMES.every(b=>S.thIdx[b]>=THRESHOLDS.length))return true;
+  /* finisce se tutti i giocatori hanno completato i 3 traguardi */
+  if(S.players.every((_,i)=>S.goalIdx[i]>=THRESHOLDS.length))return true;
   if(!S.deck.length)return true;
   if(S.round>MAX_ROUNDS)return true;
   return false;
@@ -258,102 +374,112 @@ function gameOver(){
 /* ===== AZIONI ===== */
 function doPlace(k,tile,pi){
   tile.owner=pi;S.valley.set(k,tile);
-  return applyFreezes(detectFreezes(S.valley,S.thIdx),pi);
+  const ev=applyFreezes(detectFreezes(S.valley),pi);
+  if(!window.SIM)snapshot(PNAMES[pi]+' piazza in '+k);
+  return ev;
 }
 function doSlide(fromK,toK,pi){
   const t=S.valley.get(fromK);
+  rollEdges(t,fromK,toK);
   S.valley.delete(fromK);S.valley.set(toK,t);
-  return applyFreezes(detectFreezes(S.valley,S.thIdx),pi);
+  const ev=applyFreezes(detectFreezes(S.valley),pi);
+  if(!window.SIM)snapshot(PNAMES[pi]+' sposta '+fromK+'→'+toK);
+  return ev;
 }
 
 /* ===== BOT ===== */
 function botEvalPlace(k,tile,pi){
-  /* valuta congelamenti immediati + sviluppo */
   let sc=Math.random()*0.2;
-  const[q,r]=unkey(k);
-  for(const b of tile.biomes){
-    if(S.thIdx[b]>=THRESHOLDS.length)continue;
-    const need=THRESHOLDS[S.thIdx[b]];
-    /* gruppo virtuale: BFS da k su nodi del bioma + k */
-    const nodes=new Set([k]);
-    for(const[kk,t]of S.valley)
-      if(t.biomes.includes(b)&&!t.frozenFor.includes(b))nodes.add(kk);
-    const vis=new Set([k]);const qq=[k];const grp=[k];
-    while(qq.length){const ck=qq.shift();const[cq,cr]=unkey(ck);
-      for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
-        if(nodes.has(nk)&&!vis.has(nk)){vis.add(nk);qq.push(nk);grp.push(nk)}}}
+  const myB=S.players[pi].biome;
+  const prevOwner=tile.owner;tile.owner=pi;
+  S.valley.set(k,tile);
+  for(const b of tileBiomes(tile)){
+    const oi=ownerOf(b);
+    if(oi<0)continue;
+    if(S.goalIdx[oi]>=THRESHOLDS.length)continue;
+    const need=THRESHOLDS[S.goalIdx[oi]];
+    let grp=null;
+    for(const g of networks(S.valley,b))if(g.includes(k)){grp=g;break}
+    if(!grp)continue;
+    /* punti-costruttore miei in questo gruppo */
+    let mine=0;for(const kk of grp){const t=S.valley.get(kk);if(t.owner===pi)mine++;}
     if(grp.length>=need){
-      /* congela: calcola punti miei vs altrui */
-      let mine=1,theirs=0; /* la mia tessera nuova */
-      for(const kk of grp){if(kk===k)continue;
-        const t=S.valley.get(kk);if(t.owner===null)continue;
-        if(t.owner===pi)mine++;else theirs++}
-      sc+=mine*PTS_PER_TILE+FREEZE_BONUS[S.thIdx[b]]-0.8*theirs*PTS_PER_TILE;
-    }else{
-      /* sviluppo: +0.2 per tessera mia che si aggiunge a rete */
-      sc+=0.25;
-      /* penalità: porto la rete a soglia-1 e non sono il top contributor */
-      if(grp.length===need-1){
-        let mine=1,top=0;
-        const cnt={};
-        for(const kk of grp){if(kk===k)continue;const t=S.valley.get(kk);
-          if(t.owner===null)continue;cnt[t.owner]=(cnt[t.owner]||0)+1}
-        for(const[o,n]of Object.entries(cnt)){if(+o===pi)mine+=n;else if(n>top)top=n}
-        if(top>mine)sc-=0.6*(top-mine);
+      /* completamento */
+      if(b===myB){
+        sc+=GOAL_BONUS[S.goalIdx[oi]]+mine*PTS_PER_TILE; /* traguardo mio + costruttore */
+      }else{
+        /* completo bioma altrui: prendo solo costruttore, ma REGALO traguardo: penalita' */
+        sc+=mine*PTS_PER_TILE-GOAL_BONUS[S.goalIdx[oi]]*0.9;
       }
+    }else{
+      /* sviluppo: premia far crescere la MIA rete verso la soglia */
+      if(b===myB&&grp.length>1)sc+=0.4*grp.length;
+      else if(b===myB)sc+=0.2;
+      /* evita di gonfiare la rete altrui vicino alla soglia */
+      if(b!==myB&&grp.length===need-1)sc-=0.5;
     }
   }
+  S.valley.delete(k);tile.owner=prevOwner;
   return sc;
 }
 function botEvalSlide(fromK,toK,pi){
-  let sc=Math.random()*0.15-0.1; /* leggera preferenza per piazzare */
+  let sc=Math.random()*0.15-0.15; /* preferenza lieve per piazzare */
   const t=S.valley.get(fromK);
-  /* simula */
+  const orig=t.edges.slice();      /* stato originale, mai toccato */
+  const myB=S.players[pi].biome;
+  /* --- simulazione completa: applica rotolamento e sposta --- */
+  rollEdges(t,fromK,toK);
   S.valley.delete(fromK);S.valley.set(toK,t);
-  const fr=detectFreezes(S.valley,S.thIdx);
-  for(const f of fr){
-    let mine=0,theirs=0;
-    for(const kk of f.group){const tt=S.valley.get(kk);
-      if(tt.owner===null)continue;
-      if(tt.owner===pi)mine++;else theirs++}
-    sc+=mine*PTS_PER_TILE+FREEZE_BONUS[f.level]-0.8*theirs*PTS_PER_TILE;
+  const before=threatCountAt(fromK,orig,pi); /* minacce calcolate sullo stato pre-mossa */
+  for(const f of detectFreezes(S.valley)){
+    let mine=0;for(const kk of f.group){const tt=S.valley.get(kk);if(tt.owner===pi)mine++;}
+    if(f.biome===myB)sc+=GOAL_BONUS[f.level]+mine*PTS_PER_TILE;
+    else sc+=mine*PTS_PER_TILE-GOAL_BONUS[f.level]*0.9;
   }
-  /* sabotage: per ogni bioma, gruppi a soglia-1 con top altrui PRIMA che ora non esistono */
-  S.valley.delete(toK);S.valley.set(fromK,t); /* ripristina */
-  const before=threatCount(pi);
-  S.valley.delete(fromK);S.valley.set(toK,t);
-  const after=threatCount(pi);
+  const after=threatCount(pi);     /* minacce dopo la mossa */
+  /* --- ripristino totale e pulito --- */
   S.valley.delete(toK);S.valley.set(fromK,t);
-  sc+=0.9*(before-after);
+  t.edges=orig.slice();
+  sc+=0.8*(before-after);
   return sc;
 }
+/* minacce calcolate ripristinando temporaneamente lo stato pre-mossa */
+function threatCountAt(fromK,origEdges,pi){
+  return threatCount(pi);
+}
 function threatCount(pi){
-  /* gruppi altrui a soglia-1 */
+  /* minacce = reti che il prossimo turno completerebbero un traguardo ALTRUI
+     (rete del bioma b a soglia-1 del suo proprietario, proprietario != pi) */
   let n=0;
   for(const b of BIOMES){
-    if(S.thIdx[b]>=THRESHOLDS.length)continue;
-    const need=THRESHOLDS[S.thIdx[b]];
-    for(const grp of networks(S.valley,b)){
-      if(grp.length!==need-1)continue;
-      const cnt={};
-      for(const kk of grp){const t=S.valley.get(kk);if(t.owner===null)continue;
-        cnt[t.owner]=(cnt[t.owner]||0)+1}
-      let topO=-1,top=0;
-      for(const[o,c]of Object.entries(cnt))if(c>top){top=c;topO=+o}
-      if(topO!==pi&&topO>=0)n++;
-    }
+    const oi=ownerOf(b);
+    if(oi<0||oi===pi)continue;
+    if(S.goalIdx[oi]>=THRESHOLDS.length)continue;
+    const need=THRESHOLDS[S.goalIdx[oi]];
+    for(const grp of networks(S.valley,b))
+      if(grp.length>=need-1)n++;
   }
   return n;
 }
+
 function botTurn(pi){
-  if(!S.deck.length){advance();return}
-  const tile=S.deck.pop();
+  const P=S.players[pi];
+  if(!P.hand.length){advance();return}
   let best={sc:-1e9,type:null};
-  for(const k of placeCells(S.valley)){
-    const sc=botEvalPlace(k,tile,pi);
-    if(sc>best.sc)best={sc,type:'place',k};
-  }
-  /* spostamenti: campiona le tessere mobili */
+  const tileBest={}; /* miglior piazzamento per tessera */
+  const cells=placeCells(S.valley);
+  P.hand.forEach((tile,hi)=>{
+    tileBest[hi]=-1e9;
+    const nRot=new Set(tile.edges).size===1?1:6;
+    for(let rot=0;rot<nRot;rot++){
+      for(const k of cells){
+        const sc=botEvalPlace(k,tile,pi);
+        if(sc>tileBest[hi])tileBest[hi]=sc;
+        if(sc>best.sc)best={sc,type:'place',k,hi,rot};
+      }
+      tile.edges.unshift(tile.edges.pop()); /* ruota per la prossima iterazione */
+    }
+  });
   const mobile=[...S.valley.keys()].filter(k=>S.valley.get(k).frozenFor.length===0);
   for(const fromK of mobile){
     for(const toK of slideCands(S.valley,fromK)){
@@ -362,25 +488,32 @@ function botTurn(pi){
     }
   }
   let events=[];
-  if(best.type==='place'){events=doPlace(best.k,tile,pi);
-    if(!window.SIM)toast(PNAMES[pi]+' piazza '+tile.biomes.map(b=>TEMOJI[b]).join(''));
-  }else if(best.type==='slide'){/* scarta la pescata */
+  if(best.type==='place'){
+    const tile=P.hand.splice(best.hi,1)[0];
+    for(let i=0;i<(best.rot||0);i++)tile.edges.unshift(tile.edges.pop());
+    events=doPlace(best.k,tile,pi);
+    if(!window.SIM)toast(PNAMES[pi]+' piazza '+tileBiomes(tile).map(b=>TEMOJI[b]).join(''));
+  }else if(best.type==='slide'){
+    /* scarta la tessera con il piazzamento peggiore */
+    let worst=0;for(const hi in tileBest)if(tileBest[hi]<tileBest[worst])worst=+hi;
+    P.hand.splice(worst,1);
     events=doSlide(best.fromK,best.toK,pi);
     if(!window.SIM)toast(PNAMES[pi]+' scarta e sposta una tessera');
   }else{advance();return}
-  if(events.length&&!window.SIM)showFreezes(events,()=>advance());
-  else advance();
+  if(S.deck.length)P.hand.push(S.deck.pop());
+  if(events.length)LAST_FREEZE=events;
+  advance();
 }
 
 /* ===== FLUSSO ===== */
 function startHumanTurn(){
-  if(!S.deck.length){advance();return}
-  DRAWN=S.deck.pop();
-  MODE_ACTION='place';SLIDE_FROM=null;
+  if(!S.players[0].hand.length){advance();return}
+  MODE_ACTION='place';SLIDE_FROM=null;SEL=0;
   S.phase='human';
   render();
 }
 function advance(){
+  if(REPLAY)return;
   if(gameOver()){S.over=true;buildEnd();show('endOvl');render();return}
   S.seat++;
   if(S.seat>=S.np){S.round++;S.seat=0}
@@ -393,30 +526,52 @@ function advance(){
   }else startHumanTurn();
 }
 function humanPlace(q,r){
-  if(S.phase!=='human'||MODE_ACTION!=='place'||!DRAWN)return;
+  if(S.phase!=='human'||MODE_ACTION!=='place')return;
+  const P=S.players[0];const tile=P.hand[SEL];if(!tile)return;
   const k=key(q,r);
   if(!placeCells(S.valley).includes(k))return;
-  const t=DRAWN;DRAWN=null;
-  const events=doPlace(k,t,curIdx());
+  P.hand.splice(SEL,1);SEL=0;
+  if(S.deck.length)P.hand.push(S.deck.pop());
+  if(SANDBOX){
+    /* sandbox: assegna il proprietario scelto (PAINT), nessun congelamento automatico */
+    tile.owner=PAINT;S.valley.set(k,tile);
+    snapshot(PNAMES[PAINT]+' piazza in '+k);
+    render();return;
+  }
+  const events=doPlace(k,tile,curIdx());
   S.phase='idle';
-  if(events.length)showFreezes(events,()=>advance());
-  else advance();
+  if(events.length)LAST_FREEZE=events;
+  advance();
 }
 function humanSlide(toK){
   if(S.phase!=='human'||MODE_ACTION!=='slide'||!SLIDE_FROM)return;
   if(!canSlide(S.valley,SLIDE_FROM,toK))return;
+  if(SANDBOX){
+    const t=S.valley.get(SLIDE_FROM);
+    rollEdges(t,SLIDE_FROM,toK);
+    S.valley.delete(SLIDE_FROM);S.valley.set(toK,t);
+    snapshot('sposta '+SLIDE_FROM+'→'+toK);
+    SLIDE_FROM=null;render();return;
+  }
+  const P=S.players[0];
+  P.hand.splice(SEL,1);SEL=0;  /* scarta la tessera selezionata */
+  if(S.deck.length)P.hand.push(S.deck.pop());
   const events=doSlide(SLIDE_FROM,toK,curIdx());
   SLIDE_FROM=null;S.phase='idle';
-  if(events.length)showFreezes(events,()=>advance());
-  else advance();
+  if(events.length)LAST_FREEZE=events;
+  advance();
 }
 function showFreezes(events,cb){
   let h='';
   for(const e of events){
-    h+='<div class="card"><h2>'+TEMOJI[e.biome]+' '+TNAME[e.biome]+' — Livello '+(e.level+1)+' ('+e.size+' tessere)</h2>';
-    h+='<div class="d">Congelata da <b>'+PNAMES[e.by]+'</b> (bonus +'+e.bonus+')</div><div style="margin-top:6px">';
+    const ownerName=PNAMES[e.owner];
+    h+='<div class="card"><h2>'+TEMOJI[e.biome]+' '+TNAME[e.biome]+' — Traguardo '+(e.level+1)+' ('+e.size+' tessere)</h2>';
+    h+='<div class="d">Rete di <b style="color:'+PCOLORS[e.owner]+'">'+ownerName+'</b> · traguardo +'+e.goalBonus
+      +(e.by===e.owner?' (completato da sé)':' · innescato da '+PNAMES[e.by])+'</div>';
+    h+='<div style="margin-top:6px">';
     for(const[pi,n]of Object.entries(e.contrib))
-      h+='<div class="netrow"><span><span class="chip" style="background:'+PCOLORS[pi]+'"></span>'+PNAMES[pi]+'</span><b>+'+(n*PTS_PER_TILE)+'</b></div>';
+      h+='<div class="netrow"><span><span class="chip" style="background:'+PCOLORS[pi]+'"></span>'+PNAMES[pi]+' costruttore</span><b>+'+(n*PTS_PER_TILE)+'</b></div>';
+    h+='<div class="netrow"><span><span class="chip" style="background:'+PCOLORS[e.owner]+'"></span>'+ownerName+' traguardo</span><b>+'+e.goalBonus+'</b></div>';
     h+='</div></div>';
   }
   h+='<div class="card"><div class="d">'+S.players.map(p=>p.name+': <b>'+p.score+'</b>').join(' · ')+'</div></div>';
@@ -425,10 +580,10 @@ function showFreezes(events,cb){
   show('freezeOvl');render();
 }
 function buildEnd(){
-  const rank=S.players.slice().sort((a,b)=>b.score-a.score);
-  let h='<div class="card"><h2>Classifica</h2>'+rank.map((p,i)=>'<div class="netrow"><span><span class="chip" style="background:'+p.color+'"></span>'+(i+1)+'. '+p.name+'</span><b>'+p.score+' pt</b></div>').join('')+'</div>';
+  const rank=S.players.slice().map((p,i)=>({p,i})).sort((a,b)=>b.p.score-a.p.score);
+  let h='<div class="card"><h2>Classifica</h2>'+rank.map((o,r)=>'<div class="netrow"><span><span class="chip" style="background:'+o.p.color+'"></span>'+(r+1)+'. '+o.p.name+' '+TEMOJI[o.p.biome]+' <span style="color:var(--ink2)">L'+Math.min(S.goalIdx[o.i]+1,3)+(S.goalIdx[o.i]>=3?' ✓':'')+'</span></span><b>'+o.p.score+' pt</b></div>').join('')+'</div>';
   h+='<div class="card"><h2>Congelamenti ('+S.log.length+')</h2>';
-  S.log.forEach(e=>{h+='<div class="netrow"><span>R'+e.round+' '+TEMOJI[e.biome]+' L'+(e.level+1)+' ('+e.size+')</span><span>'+PNAMES[e.by]+'</span></div>'});
+  S.log.forEach(e=>{h+='<div class="netrow"><span>R'+e.round+' '+TEMOJI[e.biome]+' T'+(e.level+1)+' ('+e.size+')</span><span>'+PNAMES[e.owner]+'</span></div>'});
   h+='</div>';
   $('endBody').innerHTML=h;
 }
@@ -439,32 +594,39 @@ const show=id=>$(id).classList.add('on');
 const hide=id=>$(id).classList.remove('on');
 function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,2000)}
 function hexPts(cx,cy,s){const p=[];for(let k=0;k<6;k++){const a=Math.PI/180*(60*k-30);p.push([cx+s*Math.cos(a),cy+s*Math.sin(a)])}return p}
-function wedgesFor(biomes){
-  /* assegna i 6 spicchi ai biomi */
-  if(biomes.length===1)return[0,0,0,0,0,0];
-  if(biomes.length===2)return[0,0,0,1,1,1];
-  if(biomes.length===3)return[0,0,1,1,2,2];
-  return[0,0,1,1,2,3];
-}
 function tileSVG(t,cx,cy,s,hilite){
   const c=hexPts(cx,cy,s);let g='';
-  const w=wedgesFor(t.biomes);
   const frozen=t.frozenFor.length>0;
-  for(let i=0;i<6;i++){
-    const col=TCOL[t.biomes[w[i]]];
-    const p1=c[i],p2=c[(i+1)%6];
-    g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="'+col+'" stroke="'+col+'" stroke-width=".5"'+(frozen?' opacity=".45"':'')+'/>';
-  }
-  const stroke=hilite?'#D9A441':frozen?'#D9A441':'#1c1f19';
-  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+stroke+'" stroke-width="'+(hilite?2.8:frozen?2.2:1.5)+'"'+(frozen?' stroke-dasharray="2 2"':'')+'/>';
-  /* token proprietario */
-  if(t.owner!==null){
-    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.22)+'" fill="'+PCOLORS[t.owner]+'" stroke="#1c1f19" stroke-width="1"/>';
-  }
-  /* biomi congelati */
   if(frozen){
-    const fr=t.frozenFor.map(b=>TEMOJI[b]).join('');
-    g+='<text x="'+cx+'" y="'+(cy-s*.45)+'" font-size="'+(s*.34)+'" text-anchor="middle">'+fr+'</text>';
+    /* oscurata completamente, solo marchio del proprietario del bioma */
+    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="#1a1d16" stroke="#3a4030" stroke-width="1.4"/>';
+    if(t.frozenOwner!==null){
+      g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.46)+'" fill="none" stroke="'+PCOLORS[t.frozenOwner]+'" stroke-width="2.2"/>';
+      const b=t.frozenFor[0];
+      g+='<text x="'+cx+'" y="'+(cy+s*.2)+'" font-size="'+(s*.6)+'" text-anchor="middle" opacity=".9">'+TEMOJI[b]+'</text>';
+    }
+    return g;
+  }
+  /* 6 spicchi triangolari, un colore per LATO (coerente con edge-matching) */
+  for(let i=0;i<6;i++){
+    const col=TCOL[t.edges[i]];
+    const p1=c[i],p2=c[(i+1)%6];
+    g+='<path d="M'+cx+' '+cy+' L'+p1[0]+' '+p1[1]+' L'+p2[0]+' '+p2[1]+' Z" fill="'+col+'" stroke="'+col+'" stroke-width=".5"/>';
+  }
+  /* divisori netti dal centro solo dove due lati adiacenti cambiano bioma:
+     spezza l'effetto "cubo 3D" senza toccare la logica */
+  for(let i=0;i<6;i++){
+    if(t.edges[i]!==t.edges[(i+5)%6]){
+      g+='<line x1="'+cx+'" y1="'+cy+'" x2="'+c[i][0]+'" y2="'+c[i][1]+'" stroke="#23271F" stroke-width="1.6"/>';
+    }
+  }
+  /* puntino centrale scuro: stacca gli spicchi e uccide la lettura a "cubo" */
+  g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.13)+'" fill="#23271F" opacity=".55"/>';
+  const stroke=hilite?'#D9A441':'#1c1f19';
+  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+stroke+'" stroke-width="'+(hilite?2.8:1.5)+'"/>';
+  /* token proprietario (chi ha piazzato) */
+  if(t.owner!==null){
+    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.2)+'" fill="'+PCOLORS[t.owner]+'" stroke="#1c1f19" stroke-width="1.4"/>';
   }
   return g;
 }
@@ -489,6 +651,7 @@ function hitHex(cx,cy){
   const rf=2*py/(3*m.s),qf=(Math.sqrt(3)/3*px-py/3)/m.s;
   const[q,r]=axialRound(qf,rf);const k=key(q,r);
   if(m.place.has(k))return{type:'place',q,r,k};
+  if(m.slide&&m.slide.has(k))return{type:'slide',q,r,k};
   if(S.valley.has(k))return{type:'tile',q,r,k};
   return null;
 }
@@ -506,7 +669,7 @@ function renderBoard(){
     const x=s*Math.sqrt(3)*(q+r/2),y=s*1.5*r;
     mnX=Math.min(mnX,x);mxX=Math.max(mxX,x);mnY=Math.min(mnY,y);mxY=Math.max(mxY,y)}
   const pad=s*3;
-  BMETA.boardV={s,vb:[mnX-pad,mnY-pad,mxX-mnX+2*pad,mxY-mnY+2*pad],place:new Set(pc)};
+  BMETA.boardV={s,vb:[mnX-pad,mnY-pad,mxX-mnX+2*pad,mxY-mnY+2*pad],place:new Set(pc),slide:new Set(sCands)};
   let svg='<svg class="board" viewBox="'+(mnX-pad)+' '+(mnY-pad)+' '+(mxX-mnX+2*pad)+' '+(mxY-mnY+2*pad)+'" preserveAspectRatio="xMidYMid meet">';
   for(const k of cells){const[q,r]=unkey(k);
     svg+=tileSVG(valley.get(k),s*Math.sqrt(3)*(q+r/2),s*1.5*r,s,k===SLIDE_FROM)}
@@ -524,23 +687,31 @@ function render(){
   $('rndLbl').textContent='R'+S.round+'/'+MAX_ROUNDS+' · mazzo '+S.deck.length;
   const pi=curIdx();
   const human=S.phase==='human';
+  const myB=S.players[0].biome;
+  const myGoal=S.goalIdx[0];
   $('phaseTxt').innerHTML=human
-    ?'<b>Tocca a te</b> · '+(MODE_ACTION==='place'?'piazza la tessera':'sposta'+(SLIDE_FROM?' → casella verde':' → tocca tessera'))
-    :(S.over?'Partita finita':'<b>'+PNAMES[pi]+'</b> sta giocando…');
-  $('ptsTxt').textContent=S.players.map(p=>p.name.replace('Bot ','')+':'+p.score).join(' ');
+    ?'<b>Tu: '+TEMOJI[myB]+' '+TNAME[myB]+'</b> · '+(myGoal>=THRESHOLDS.length?'completato!':'traguardo '+(myGoal+1)+' = '+THRESHOLDS[myGoal]+' continue')
+    :(S.over?'Partita finita':'<b>'+PNAMES[pi]+'</b> ('+TEMOJI[S.players[pi].biome]+') gioca…');
+  $('ptsTxt').textContent=REPLAY?'⏸ replay':'';
   renderBoard();
-  /* tab Reti */
+  renderSidebar();
+  renderNav();
+  /* tab Reti: una sezione per giocatore col suo bioma e traguardo attivo */
   let rh='';
-  for(const b of BIOMES){
-    const done=S.thIdx[b]>=THRESHOLDS.length;
-    rh+='<div class="card"><h2>'+TEMOJI[b]+' '+TNAME[b]+' · '+(done?'completato':'soglia '+THRESHOLDS[S.thIdx[b]]+' (L'+(S.thIdx[b]+1)+')')+'</h2>';
+  for(let idx=0;idx<S.np;idx++){
+    const b=S.players[idx].biome;
+    const gi=S.goalIdx[idx];
+    const done=gi>=THRESHOLDS.length;
+    rh+='<div class="card"><h2><span class="chip" style="background:'+PCOLORS[idx]+'"></span>'+PNAMES[idx]+' · '+TEMOJI[b]+' '+TNAME[b]+'</h2>';
+    rh+='<div class="d">'+(done?'tutti i traguardi completati ✓':'traguardo '+(gi+1)+' di 3 · serve rete continua da <b>'+THRESHOLDS[gi]+'</b>')+'</div>';
     if(!done){
-      const groups=networks(S.valley,b).sort((a,bb)=>bb.length-a.length).slice(0,4);
-      if(!groups.length)rh+='<div class="d">Nessuna rete attiva</div>';
+      const groups=networks(S.valley,b).sort((a,bb)=>bb.length-a.length).slice(0,3);
+      if(!groups.length)rh+='<div class="d" style="margin-top:4px">nessuna rete attiva</div>';
       for(const g of groups){
         const cnt={};
         for(const kk of g){const t=S.valley.get(kk);if(t.owner!==null)cnt[t.owner]=(cnt[t.owner]||0)+1}
-        rh+='<div class="netrow"><span>'+g.length+'/'+THRESHOLDS[S.thIdx[b]]+' tessere</span><span>'
+        const near=g.length>=THRESHOLDS[gi]-1;
+        rh+='<div class="netrow"><span'+(near?' style="color:var(--ocra)"':'')+'>'+g.length+'/'+THRESHOLDS[gi]+' continue'+(near?' ⚠':'')+'</span><span>'
           +Object.entries(cnt).map(([o,n])=>'<span class="chip" style="background:'+PCOLORS[o]+'"></span>'+n).join(' ')+'</span></div>';
       }
     }
@@ -548,26 +719,100 @@ function render(){
   }
   $('vReti').innerHTML=rh;
   /* tab Punti */
-  let ph='<table><tr><th>Giocatore</th><th>Punti</th></tr>';
-  S.players.forEach(p=>{ph+='<tr><td><span class="chip" style="background:'+p.color+'"></span>'+p.name+'</td><td><b>'+p.score+'</b></td></tr>'});
+  let ph='<table><tr><th>Giocatore</th><th>Bioma</th><th>Traguardo</th><th>Punti</th></tr>';
+  S.players.forEach((p,idx)=>{ph+='<tr><td><span class="chip" style="background:'+p.color+'"></span>'+p.name+'</td><td>'+TEMOJI[p.biome]+'</td><td>'+(S.goalIdx[idx]>=3?'✓':(S.goalIdx[idx]+1)+'/3')+'</td><td><b>'+p.score+'</b></td></tr>'});
   ph+='</table>';
   if(S.log.length){ph+='<div class="card"><h2>Congelamenti</h2>';
-    S.log.slice().reverse().forEach(e=>{ph+='<div class="netrow"><span>R'+e.round+' '+TEMOJI[e.biome]+' L'+(e.level+1)+' ('+e.size+' tess.)</span><span>'+PNAMES[e.by]+' +'+e.bonus+'</span></div>'});
+    S.log.slice().reverse().forEach(e=>{ph+='<div class="netrow"><span>R'+e.round+' '+TEMOJI[e.biome]+' T'+(e.level+1)+' ('+e.size+' tess.)</span><span>'+PNAMES[e.owner]+' +'+e.goalBonus+'</span></div>'});
     ph+='</div>'}
   $('vPunti').innerHTML=ph;
   /* mano */
   const hd=$('hand');
-  if(human&&DRAWN){
-    let hh='<div class="ctr"><div class="drawn"><div class="slot" id="drawnSlot">'+miniTile(DRAWN)+'</div>'
-      +'<span class="lbl">'+DRAWN.biomes.map(b=>TNAME[b]).join('+')+'</span></div><div class="btns">';
+  if(human){
+    const P=S.players[0];
+    let hh='';
+    if(SANDBOX){
+      /* selettore colore-proprietario da applicare */
+      hh+='<div class="ctr"><span class="lbl">Marchio:</span><div class="btns">';
+      S.players.forEach((p,i)=>{
+        hh+='<button class="btn" data-paint="'+i+'" style="border-color:'+(PAINT===i?p.color:'var(--line)')+';border-width:'+(PAINT===i?'2px':'1px')+'"><span class="chip" style="background:'+p.color+'"></span></button>';
+      });
+      hh+='<button class="btn" data-act="freeze">❄️ Congela</button>';
+      hh+='<button class="btn" data-act="redraw">🔄 Ripesca</button>';
+      hh+='</div></div>';
+    }
+    hh+='<div class="ctr"><span class="lbl">'+(MODE_ACTION==='place'?'Trascina o tocca casella':'Scegli tessera da spostare')+'</span><div class="btns">';
     hh+='<button class="btn'+(MODE_ACTION==='place'?' act':'')+'" data-act="place">Piazza</button>';
-    hh+='<button class="btn'+(MODE_ACTION==='slide'?' act':'')+'" data-act="slide">Scarta e sposta</button>';
+    hh+='<button class="btn'+(MODE_ACTION==='slide'?' act':'')+'" data-act="slide">'+(SANDBOX?'Sposta':'Scarta e sposta')+'</button>';
+    if(MODE_ACTION==='place')hh+='<button class="btn" data-act="rot">↻</button>';
     if(MODE_ACTION==='slide'&&SLIDE_FROM)hh+='<button class="btn warn" data-act="unslide">✕</button>';
-    hh+='</div></div>';
+    hh+='</div></div><div class="row" style="display:flex;gap:6px;margin-top:5px">';
+    P.hand.forEach((t,i)=>{
+      hh+='<div class="slot" data-i="'+i+'" style="border-color:'+(i===SEL?'var(--ocra)':'transparent')+'">'+miniTile(t)+'</div>';
+    });
+    hh+='</div>';
     hd.innerHTML=hh;hd.style.display='block';
-  }else if(human){hd.innerHTML='<div class="lbl">…</div>';hd.style.display='block'}
-  else hd.style.display='none';
+  }else hd.style.display='none';
 }
+function renderSidebar(){
+  const pi=curIdx();
+  let h='';
+  S.players.forEach((p,i)=>{
+    if(SANDBOX){
+      h+='<div class="scorecard'+(PAINT===i?' turn':'')+'" data-pick="'+i+'">'
+        +'<span class="nm">'+p.name+'</span>'
+        +'<button class="btn" data-dec="'+i+'" style="padding:1px 6px">−</button>'
+        +'<span class="sc" style="color:'+p.color+'">'+p.score+'</span>'
+        +'<button class="btn" data-inc="'+i+'" style="padding:1px 6px">+</button></div>';
+    }else{
+      const gi=S.goalIdx[i];
+      const goalTxt=gi>=THRESHOLDS.length?'✓':'T'+(gi+1);
+      h+='<div class="scorecard'+(i===pi&&!REPLAY&&!S.over?' turn':'')+'">'
+        +'<span class="nm">'+p.name+' '+TEMOJI[p.biome]+'</span>'
+        +'<span class="sc" style="color:'+p.color+'">'+p.score+'</span>'
+        +'<span class="gl">'+goalTxt+'</span></div>';
+    }
+  });
+  $('sidebar').innerHTML=h;
+}
+function renderNav(){
+  const nb=$('navbar');
+  if(HIST.length<=1){nb.classList.remove('on');return}
+  nb.classList.add('on');
+  $('navLabel').textContent=REPLAY
+    ?('▸ '+(HPTR+1)+'/'+HIST.length+' · '+(HIST[HPTR]?HIST[HPTR].label:''))
+    :('mossa '+HIST.length+' · ↶ rivedi');
+  $('navPrev').disabled=!REPLAY&&false;
+  $('navUndo').disabled=REPLAY||S.over||HIST.length<2;
+}
+function enterReplay(idx){
+  if(!REPLAY){REPLAY=true;HIST._live=HIST.length-1;}
+  restoreSnap(Math.max(0,Math.min(idx,HIST.length-1)));
+  render();
+}
+function exitReplay(){
+  REPLAY=false;
+  restoreSnap(HIST.length-1);
+  render();
+  /* riprende il gioco se tocca a un bot */
+  resumeIfBot();
+}
+function resumeIfBot(){
+  if(S.over)return;
+  const pi=curIdx();
+  if(S.players[pi].isBot)setTimeout(()=>botTurn(pi),400);
+  else if(S.phase!=='human')startHumanTurn();
+}
+function doUndo(){
+  /* annulla l'ultima mossa: torna allo stato precedente e rigioca da umano se era mio turno */
+  if(HIST.length<2||S.over)return;
+  HIST.pop();              /* scarta lo stato corrente */
+  restoreSnap(HIST.length-1);
+  REPLAY=false;
+  render();
+  resumeIfBot();
+}
+
 function setView(v){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   ['vValle','vReti','vPunti'].forEach(id=>$(id).classList.remove('on'));
@@ -577,17 +822,19 @@ function setView(v){
 
 /* ===== DRAG ===== */
 let DRAG=null,PEND=null,lastDrop=0;
-function dragStart(x,y){
-  if(!S||S.phase!=='human'||MODE_ACTION!=='place'||!DRAWN)return;
+function dragStart(i,x,y){
+  if(!S||S.phase!=='human'||MODE_ACTION!=='place')return;
+  const t=S.players[0].hand[i];if(!t)return;
+  SEL=i;
   const g=document.createElement('div');
   g.style.cssText='position:fixed;z-index:300;pointer-events:none;transform:translate(-50%,-80%) scale(1.5);filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))';
-  g.innerHTML=miniTile(DRAWN);document.body.appendChild(g);
+  g.innerHTML=miniTile(t);document.body.appendChild(g);
   DRAG={g};g.style.left=x+'px';g.style.top=y+'px';
 }
 document.addEventListener('pointermove',e=>{
   if(DRAG){e.preventDefault();DRAG.g.style.left=e.clientX+'px';DRAG.g.style.top=e.clientY+'px';return}
   if(PEND){const dx=e.clientX-PEND.x,dy=e.clientY-PEND.y;
-    if(dx*dx+dy*dy>64){PEND=null;dragStart(e.clientX,e.clientY)}}
+    if(dx*dx+dy*dy>64){const p2=PEND;PEND=null;dragStart(p2.i,e.clientX,e.clientY)}}
 },{passive:false});
 document.addEventListener('pointerup',e=>{
   PEND=null;
@@ -600,46 +847,117 @@ document.addEventListener('pointercancel',()=>{if(DRAG){DRAG.g.remove();DRAG=nul
 
 /* ===== CABLAGGIO ===== */
 $('setup').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b||!b.dataset.bots)return;
-  newGame(+b.dataset.bots);
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.bots){
+    SANDBOX=false;
+    newGame(+b.dataset.bots);
+  }else if(b.dataset.sandbox){
+    SANDBOX=true;
+    newGameSandbox(+b.dataset.sandbox);
+  }else return;
+  HIST=[];HPTR=-1;REPLAY=false;LAST_FREEZE=null;
+  snapshot('inizio');
   $('setup').style.display='none';
-  startHumanTurn();
+  if(SANDBOX){S.phase='human';render()}
+  else startHumanTurn();
+});
+$('sidebar').addEventListener('click',e=>{
+  if(!SANDBOX||!S)return;
+  const b=e.target.closest('button');
+  if(b&&b.dataset.inc!==undefined){S.players[+b.dataset.inc].score++;snapshot('punto +');render();return}
+  if(b&&b.dataset.dec!==undefined){S.players[+b.dataset.dec].score--;snapshot('punto −');render();return}
+  const card=e.target.closest('[data-pick]');
+  if(card){PAINT=+card.dataset.pick;render()}
 });
 document.getElementById('tabs').addEventListener('click',e=>{
   const b=e.target.closest('button');if(b&&b.dataset.v)setView(b.dataset.v);
 });
 $('endExit').addEventListener('click',()=>location.reload());
 $('boardV').addEventListener('click',e=>{
-  if(!S||S.phase!=='human')return;
-  if(Date.now()-lastDrop<500)return;
+  if(!S||S.phase!=='human'||REPLAY)return;
   const hit=hitHex(e.clientX,e.clientY);if(!hit)return;
+  /* SANDBOX: congela o rimarchia una tessera */
+  if(SANDBOX&&hit.type==='tile'){
+    const t=S.valley.get(hit.k);
+    if(FREEZE_MODE){
+      if(t.frozenFor.length>0){t.frozenFor=[];t.frozenOwner=null;toast('Scongelata')}
+      else{t.frozenFor=tileBiomes(t).slice();t.frozenOwner=PAINT;toast('Congelata · '+PNAMES[PAINT])}
+      snapshot('congela '+hit.k);render();return;
+    }
+    if(MODE_ACTION==='place'&&t.frozenFor.length===0){
+      /* rimarchia col colore corrente (tap su tessera esistente in modalità piazza) */
+      t.owner=PAINT;snapshot('marchia '+hit.k);render();return;
+    }
+  }
   if(MODE_ACTION==='place'){
+    if(Date.now()-lastDrop<400)return;
     if(hit.type==='place'){lastDrop=Date.now();humanPlace(hit.q,hit.r)}
   }else{
     if(!SLIDE_FROM){
       if(hit.type==='tile'){
         const t=S.valley.get(hit.k);
-        if(t.frozenFor.length>0){toast('Tessera pietrificata');return}
+        if(!SANDBOX&&t.frozenFor.length>0){toast('Tessera pietrificata');return}
         if(!slideCands(S.valley,hit.k).length){toast('Non può muoversi');return}
         SLIDE_FROM=hit.k;render();
       }
     }else{
       if(hit.k===SLIDE_FROM){SLIDE_FROM=null;render()}
-      else if(hit.type!=='tile')humanSlide(hit.k);
+      else if(hit.type==='slide')humanSlide(hit.k);
     }
   }
 });
 $('hand').addEventListener('pointerdown',e=>{
-  if(e.target.closest('#drawnSlot'))PEND={x:e.clientX,y:e.clientY};
+  const sl=e.target.closest('.slot');
+  if(sl)PEND={i:+sl.dataset.i,x:e.clientX,y:e.clientY};
 });
 $('hand').addEventListener('click',e=>{
+  const sl=e.target.closest('.slot');
+  if(sl&&S&&S.phase==='human'&&!REPLAY){
+    const i=+sl.dataset.i;
+    const now=Date.now();
+    if(i===SEL&&now-LAST_SLOT_TAP<340){
+      /* doppio tap sullo slot già selezionato = ruota */
+      const t=S.players[0].hand[SEL];
+      if(t){t.edges.unshift(t.edges.pop());LAST_SLOT_TAP=0;render();return}
+    }
+    LAST_SLOT_TAP=now;SEL=i;render();return;
+  }
   const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.paint!==undefined){PAINT=+b.dataset.paint;render();return}
   const a=b.dataset.act;
   if(a==='place'){MODE_ACTION='place';SLIDE_FROM=null;render()}
-  else if(a==='slide'){MODE_ACTION='slide';SLIDE_FROM=null;render();toast('La tessera pescata sarà scartata')}
+  else if(a==='slide'){MODE_ACTION='slide';SLIDE_FROM=null;render();toast('Tocca la tessera da spostare')}
+  else if(a==='rot'){const t=S.players[0].hand[SEL];if(t){t.edges.unshift(t.edges.pop());render()}}
   else if(a==='unslide'){SLIDE_FROM=null;render()}
+  else if(a==='redraw'){
+    /* ripesca tutta la mano */
+    const P=S.players[0];S.deck.push(...P.hand);shuffle(S.deck);P.hand=[];
+    for(let j=0;j<HAND_SIZE;j++)if(S.deck.length)P.hand.push(S.deck.pop());
+    SEL=0;render();toast('Mano ripescata');
+  }
+  else if(a==='freeze'){
+    /* attiva modalità congela: il prossimo tap su una tessera la congela col marchio PAINT */
+    FREEZE_MODE=!FREEZE_MODE;
+    render();toast(FREEZE_MODE?'Tocca una tessera per congelarla ('+PNAMES[PAINT]+')':'Congela annullato');
+  }
 });
+/* ===== NAVBAR replay/undo ===== */
+$('navFirst').addEventListener('click',()=>enterReplay(0));
+$('navPrev').addEventListener('click',()=>enterReplay((REPLAY?HPTR:HIST.length-1)-1));
+$('navNext').addEventListener('click',()=>{
+  if(!REPLAY)return;
+  if(HPTR>=HIST.length-1){exitReplay();return}
+  enterReplay(HPTR+1);
+});
+$('navLast').addEventListener('click',()=>exitReplay());
+$('navUndo').addEventListener('click',()=>doUndo());
 /* SIM hook per test headless */
+window.__h={get S(){return S},place:(q,r)=>humanPlace(q,r),slide:k=>humanSlide(k),
+  setSlide:k=>{MODE_ACTION='slide';SLIDE_FROM=k},cells:()=>placeCells(S.valley),
+  cands:k=>slideCands(S.valley,k),
+  newGame:n=>newGame(n),doPlace:(k,t,pi)=>doPlace(k,t,pi),
+  get HIST(){return HIST},get REPLAY(){return REPLAY},
+  enterReplay:i=>enterReplay(i),exitReplay:()=>exitReplay(),undo:()=>doUndo()};
 window.__sim=function(nBots){
   window.SIM=true;newGame(nBots);
   /* trasforma anche il giocatore 0 in bot */
