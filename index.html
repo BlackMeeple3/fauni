@@ -96,7 +96,7 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 </div>
 
 <div id="hdr">
-  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v6.5</span></span>
+  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v7.2</span></span>
   <span class="rnd" id="rndLbl"></span>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:10px;color:var(--ink2)"></span></div>
@@ -138,17 +138,26 @@ const THRESHOLDS=[4,5,6];     // i 3 traguardi: rete continua da 4, poi 5, poi 6
 const GOAL_BONUS=[3,4,5];     // bonus traguardo L1,L2,L3 (sopra ai punti-costruttore)
 const PTS_PER_TILE=1;          // punti per ogni propria tessera nella rete
 const MIN_ADJ_AFTER=6;         // dopo N tessere servono 2 lati adiacenti
-const HAND_SIZE=3;             // tessere in mano
+const HAND_SIZE=4;             // tessere in mano
 const MAX_ROUNDS=25;
 
 /* ===== COSTANTI ===== */
-const BIOMES=['selva','pascolo','torrente','borgo'];
-const TCOL={selva:'#3F6B4B',pascolo:'#A9B35A',torrente:'#5E9EC4',borgo:'#B5795B'};
-const TNAME={selva:'Selva',pascolo:'Pascolo',torrente:'Torrente',borgo:'Borgo'};
-const TEMOJI={selva:'🌲',pascolo:'🌿',torrente:'💧',borgo:'🏛️'};
+const BIOMES=['overgrown','coral','dunes','badlands','magma','aether'];
+const TCOL={overgrown:'#4A8C3F',coral:'#3B9DB5',dunes:'#D9B65A',badlands:'#C77A3E',magma:'#C4413A',aether:'#8E6FC4'};
+const TNAME={overgrown:'Overgrown',coral:'Coral',dunes:'Dunes',badlands:'Badlands',magma:'Magma',aether:'Aether'};
+const TEMOJI={overgrown:'🟢',coral:'🔵',dunes:'🟡',badlands:'🟠',magma:'🔴',aether:'🟣'};
+/* SOGLIA MINIMA 4 per tutti: sotto le 4 tessere connesse un'area non fa punti.
+   I punti dipendono dalla LUNGHEZZA dell'area (1 punto a tessera, base).
+   L'oro (Dunes) vale di più: PESO punti maggiore. Tutto da bilanciare col playtest. */
+const SOGLIA_MIN=4;
+/* punti per tessera di ciascun bioma (base 1; oro vale di più) */
+const TPESO_PT={overgrown:1,coral:1,dunes:2,badlands:1,magma:1,aether:1};
+/* diffusione nel mazzo: tutti uguali tranne l'oro (Dunes) più raro */
+const TPESO={overgrown:22,coral:22,dunes:12,badlands:22,magma:22,aether:22};
 /* il giocatore È il suo bioma: nome e colore vengono dal bioma */
-const PCOLORS=BIOMES.map(b=>TCOL[b]);
-const PNAMES=BIOMES.map(b=>TNAME[b]);
+/* i giocatori sono entità con colore proprio (non più i biomi, che ora sono 6) */
+const PCOLORS=['#E8E0C8','#5B8DD9','#D96BA0','#6BBF8A'];
+const PNAMES=['Giocatore 1','Giocatore 2','Giocatore 3','Giocatore 4'];
 function isLight(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return (r*299+g*587+b*114)/1000>150;}
 const DIRS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
 /* rotolamento: muovendo verso destra (dir 0,1,5 ~ semipiano destro) ruota orario,
@@ -186,45 +195,39 @@ function makeSeeds(cols){
   return seeds;
 }
 const mk=cols=>({id:++tid,edges:cols.slice(),seeds:makeSeeds(cols),rot:0,owner:null,frozenFor:[],frozenOwner:null,tokens:[]});
+const mkJolly=()=>({id:++tid,edges:[],jolly:true,seeds:[],rot:0,owner:null,frozenFor:[],frozenOwner:null,tokens:[]});
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
-function buildDeck(nColors){
-  const BS=BIOMES.slice(0,nColors||4);
-  const nc=BS.length;
-  const TOTAL=100;
-  /* BILANCIAMENTO RIGOROSO: costruisco la lista dei colori-macchia in modo che
-     ogni colore appaia sullo stesso numero di tessere.
-     Ogni tessera ha 2 o 3 macchie. Decido prima quante tessere a 2 e a 3 colori,
-     poi distribuisco i colori in modo perfettamente uniforme. */
-  /* metà tessere a 2 colori, metà a 3 (se nc>=3) */
-  const n3 = nc>=3 ? Math.floor(TOTAL/2) : 0;
-  const n2 = TOTAL - n3;
-  const totalSlots = n2*2 + n3*3;          /* numero totale di macchie da assegnare */
-  /* costruisco un sacchetto di colori bilanciato: ogni colore ripetuto totalSlots/nc volte */
-  const per = Math.floor(totalSlots/nc);
+function buildDeck(){
+  /* mazzo a 6 biomi pesati per rarità (TPESO = quante tessere contengono ogni bioma).
+     Ogni tessera ha 2-3 macchie. Costruisco un sacchetto di "presenze" per bioma. */
   const bag=[];
-  BS.forEach(b=>{for(let i=0;i<per;i++)bag.push(b)});
-  while(bag.length<totalSlots)bag.push(BS[bag.length%nc]); /* resto */
+  BIOMES.forEach(b=>{for(let i=0;i<TPESO[b];i++)bag.push(b)});
   shuffle(bag);
-  /* assemblo le tessere pescando dal sacchetto, evitando colori duplicati nella stessa tessera */
+  const totalSlots=bag.length;
+  /* decido quante tessere a 2 e a 3 macchie per consumare tutto il sacchetto */
+  /* media ~2.5 macchie/tessera → numero tessere ≈ slots/2.5 */
+  const nTiles=Math.round(totalSlots/2.5);
+  const n3=Math.floor(nTiles*0.5), n2=nTiles-n3;
   const d=[];let bi=0;
   function takeDistinct(k){
-    const picked=[];
-    let attempts=0;
-    while(picked.length<k && attempts<bag.length*2){
-      const col=bag[bi%bag.length];
-      if(!picked.includes(col)){picked.push(col);bag.splice(bi%bag.length,1);}
+    const picked=[];let attempts=0;
+    while(picked.length<k && attempts<bag.length*3){
+      if(bag.length===0)break;
+      const idx=bi%bag.length;const col=bag[idx];
+      if(!picked.includes(col)){picked.push(col);bag.splice(idx,1);}
       else bi++;
       attempts++;
     }
-    /* se non riesco a riempire con distinti, completo con colori mancanti */
-    while(picked.length<k){const c=BS.find(b=>!picked.includes(b));if(c)picked.push(c);else break;}
+    while(picked.length<k){const c=BIOMES.find(b=>!picked.includes(b));if(c)picked.push(c);else break;}
     return picked;
   }
-  for(let i=0;i<n3;i++)d.push(mk(takeDistinct(Math.min(3,nc))));
-  for(let i=0;i<n2;i++)d.push(mk(takeDistinct(2)));
+  for(let i=0;i<n3 && bag.length;i++)d.push(mk(takeDistinct(3)));
+  for(let i=0;i<n2 && bag.length;i++)d.push(mk(takeDistinct(2)));
+  while(bag.length>=2)d.push(mk(takeDistinct(2)));
+  if(bag.length===1)d.push(mk([bag.pop(),BIOMES[0]]));
   return shuffle(d);
 }
-const tileBiomes=t=>[...new Set(t.edges)];
+const tileBiomes=t=>t.jolly?BIOMES.slice():[...new Set(t.edges)];
 
 /* ===== GEOMETRIA ===== */
 const key=(q,r)=>q+','+r;
@@ -335,7 +338,7 @@ function perimeterRing(valley,movingK){
 let S=null;
 let MODE_ACTION='place',SLIDE_FROM=null,SEL=0;
 let MOVE_MODE=false,MOVE_FROM=null,MOVE_RING=[],MOVE_IDX=0,MOVE_ROT=0,MOVE_TILE=null;
-let HIST=[],HPTR=-1,REPLAY=false,LAST_FREEZE=null,LAST_SLOT_TAP=0,SANDBOX=false,PAINT=0,TOKEN_MODE=false,TOKEN_COL=0,WAIT_CONFIRM=null;
+let HIST=[],HPTR=-1,REPLAY=false,LAST_FREEZE=null,LAST_SLOT_TAP=0,SANDBOX=false,PAINT=0,TOKEN_MODE=false,TOKEN_COL=0,FREEZE_MODE=false,FREEZE_BIO=0,WAIT_CONFIRM=null;
 function snapshot(label){
   /* deep clone dello stato COMPLETO per la cronologia (mazzo incluso) */
   const snap=JSON.parse(JSON.stringify({
@@ -377,19 +380,19 @@ function newGame(nBots){
     S.goalIdx.push(0);
   }
 }
-function newGameSandbox(nCol){
-  S={np:nCol,deck:buildDeck(nCol),valley:new Map(),players:[],round:1,seat:0,phase:'human',
-    goalIdx:[],log:[],over:false};
-  /* tessera iniziale neutra al centro */
-  const initEdges=[];for(let i=0;i<6;i++)initEdges.push(BIOMES[i%nCol]);
-  const initTile=mk(initEdges);
+function newGameSandbox(nPlayers){
+  S={np:nPlayers,deck:buildDeck(),valley:new Map(),players:[],round:1,seat:0,phase:'human',
+    log:[],over:false,closed:[]};
+  /* tessera iniziale neutra al centro con biomi misti */
+  const startCols=shuffle(BIOMES.slice()).slice(0,3);
+  const initTile=mk([startCols[0],startCols[1],startCols[2],startCols[0],startCols[1],startCols[2]]);
   initTile.owner=null;initTile.tokens=[];initTile.start=true;
   S.valley.set(key(0,0),initTile);
-  for(let i=0;i<nCol;i++){
-    const p={name:PNAMES[i],color:PCOLORS[i],score:0,isBot:false,hand:[],biome:BIOMES[i],placed:0};
-    for(let j=0;j<HAND_SIZE;j++)if(S.deck.length)p.hand.push(S.deck.pop());
+  for(let i=0;i<nPlayers;i++){
+    const p={name:PNAMES[i],color:PCOLORS[i],score:0,hand:[],drawn:0,jollyAt10:false};
+    for(let j=0;j<HAND_SIZE;j++)if(S.deck.length){p.hand.push(S.deck.pop());p.drawn++;}
+    p.hand.push(mkJolly());      /* 1 jolly iniziale */
     S.players.push(p);
-    S.goalIdx.push(0);
   }
   PAINT=0;
 }
@@ -679,15 +682,23 @@ function hexPts(cx,cy,s){const p=[];for(let k=0;k<6;k++){const a=Math.PI/180*(60
 function hexCenter(q,r,s){return [s*Math.sqrt(3)*(q+r/2), s*1.5*r]}
 function tileSVG(t,cx,cy,s,hilite){
   const c=hexPts(cx,cy,s);let g='';
-  const frozen=t.frozenFor.length>0;
-  if(frozen){
-    /* oscurata completamente, solo marchio del proprietario del bioma */
-    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="#1a1d16" stroke="#3a4030" stroke-width="1.4"/>';
-    if(t.frozenOwner!==null){
-      g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.46)+'" fill="none" stroke="'+PCOLORS[t.frozenOwner]+'" stroke-width="2.2"/>';
-      const b=t.frozenFor[0];
-      g+='<text x="'+cx+'" y="'+(cy+s*.2)+'" font-size="'+(s*.6)+'" text-anchor="middle" opacity=".9">'+TEMOJI[b]+'</text>';
+  /* JOLLY: tessera speciale iridescente che vale ogni bioma */
+  if(t.jolly){
+    const clipId='j'+t.id;
+    g+='<clipPath id="'+clipId+'"><path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z"/></clipPath>';
+    g+='<g clip-path="url(#'+clipId+')">';
+    /* spicchi coi 6 colori dei biomi */
+    const R=s*1.3;
+    for(let f=0;f<6;f++){
+      const a0=(f*60-90)*Math.PI/180,a1=((f+1)*60-90)*Math.PI/180;
+      const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
+      g+='<path d="M'+cx+' '+cy+' L'+x0+' '+y0+' A'+R+' '+R+' 0 0 1 '+x1+' '+y1+' Z" fill="'+TCOL[BIOMES[f]]+'" opacity=".88"/>';
     }
+    g+='</g>';
+    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.32)+'" fill="#fff" opacity=".92"/>';
+    g+='<text x="'+cx+'" y="'+(cy+s*.16)+'" font-size="'+(s*.42)+'" text-anchor="middle" font-weight="bold">★</text>';
+    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+(hilite?'#D9A441':'#1c1f19')+'" stroke-width="'+(hilite?2.8:1.5)+'"/>';
+    g+=tokenSVG(t,cx,cy,s);
     return g;
   }
   /* tessera a 4 QUARTI (es. tessera iniziale): 4 settori da 90°, puramente visivi */
@@ -744,16 +755,18 @@ function tileSVG(t,cx,cy,s,hilite){
   g+='</g>';
   const stroke0=hilite?'#D9A441':'#1c1f19';
   g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+stroke0+'" stroke-width="'+(hilite?2.8:1.5)+'"/>';
-  /* TACCA DI ORIENTAMENTO: freccia rossa ben visibile che ruota con la tessera */
-  const rotAng=(t.rot||0)*Math.PI/3;
-  const markA=-Math.PI/2+rotAng;
-  const mr=s*0.92;
-  const mx=cx+mr*Math.cos(markA), my=cy+mr*Math.sin(markA);
-  const perp=markA+Math.PI/2, w2=s*0.2;
-  const ax=mx+w2*Math.cos(perp), ay=my+w2*Math.sin(perp);
-  const bx=mx-w2*Math.cos(perp), by=my-w2*Math.sin(perp);
-  const tipx=cx+(s*0.5)*Math.cos(markA), tipy=cy+(s*0.5)*Math.sin(markA);
-  g+='<path d="M'+ax+' '+ay+' L'+bx+' '+by+' L'+tipx+' '+tipy+' Z" fill="#E03030" stroke="#fff" stroke-width="1"/>';
+  /* MARCHIO BIOMI CONGELATI: per ogni bioma chiuso su questa tessera, una pastiglia
+     scura con il colore del bioma e un lucchetto. Indica cosa è chiuso (resto vivo). */
+  if(t.frozenFor&&t.frozenFor.length){
+    /* velo scuro semitrasparente per segnalare che qui c'è del congelato */
+    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="rgba(15,17,12,.45)"/>';
+    const fb=t.frozenFor;const n=fb.length;
+    fb.forEach((b,i)=>{
+      const px=cx+(i-(n-1)/2)*s*0.5, py=cy;
+      g+='<circle cx="'+px+'" cy="'+py+'" r="'+(s*.2)+'" fill="'+TCOL[b]+'" stroke="#0f110c" stroke-width="1.5"/>';
+      g+='<text x="'+px+'" y="'+(py+s*.07)+'" font-size="'+(s*.22)+'" text-anchor="middle">🔒</text>';
+    });
+  }
   g+=tokenSVG(t,cx,cy,s);
   return g;
 }
@@ -862,16 +875,16 @@ function _render(){
   renderSidebar();
   renderNav();
   /* tab Regole */
-  $('vReti').innerHTML='<div class="card"><h2>Come si gioca</h2>'
-    +'<div class="d">A turno, ognuno piazza una tessera. Il colore del paesaggio identifica i biomi. '
-    +'Quando vuoi puoi <b>congelare</b> tessere (azione libera, fuori turno): premi ❄️ e tocca le tessere. '
-    +'I punti li segni tu sulle schede in alto (+ e −).</div></div>'
-    +'<div class="card"><h2>Biomi giocatori</h2><div class="shapes">'
-    +S.players.map(p=>'<div class="netrow"><span>'+TEMOJI[p.biome]+' '+p.name+'</span><span><span class="chip" style="background:'+p.color+'"></span></span></div>').join('')
-    +'</div></div>';
+  $('vReti').innerHTML='<div class="card"><h2>Come si fanno punti</h2>'
+    +'<div class="d">Un\'area di un bioma si può chiudere solo quando <b>non può più espandersi</b> (decidi tu) e ha <b>almeno '+SOGLIA_MIN+' tessere</b> collegate. I punti dipendono dalla <b>lunghezza</b>: 1 punto per tessera. L\'oro 🟡 Dunes vale di più (2 a tessera). Sotto le '+SOGLIA_MIN+' tessere, niente punti.</div>'
+    +'<table style="width:100%;margin-top:8px;border-collapse:collapse">'
+    +'<tr style="opacity:.7"><th style="text-align:left">Bioma</th><th>Min</th><th>Punti/tessera</th></tr>'
+    +BIOMES.map(b=>'<tr><td><span class="chip" style="background:'+TCOL[b]+'"></span> '+TEMOJI[b]+' '+TNAME[b]+'</td><td style="text-align:center;font-weight:700">'+SOGLIA_MIN+'</td><td style="text-align:center;font-weight:700;color:#D9A441">'+TPESO_PT[b]+(TPESO_PT[b]>1?' ⭐':'')+'</td></tr>').join('')
+    +'</table></div>'
+    +'<div class="card"><h2>Come si gioca</h2><div class="d">Tutti scelgono in segreto una tessera, poi si gioca a turno (il primo ruota). Nel tuo turno: <b>piazzi</b> (e peschi), oppure <b>sposti</b> una tessera esterna (e non peschi). 🔒 Chiudi: scegli il bioma e tocca le tessere dell\'area chiusa per segnarla. I punti li metti tu (+/−).</div></div>';
   /* tab Punteggi */
   $('vPunti').innerHTML='<div class="card"><h2>Punteggi</h2><div class="shapes">'
-    +S.players.map(p=>'<div class="netrow"><span>'+TEMOJI[p.biome]+' '+p.name+'</span><span style="font-weight:700;font-size:16px;color:'+p.color+'">'+p.score+'</span></div>').join('')
+    +S.players.map((p,i)=>'<div class="netrow"><span><span class="chip" style="background:'+p.color+'"></span> '+p.name+'</span><span style="font-weight:700;font-size:16px;color:'+p.color+'">'+p.score+'</span></div>').join('')
     +'</div></div>';
   /* mano */
   const hd=$('hand');
@@ -881,7 +894,6 @@ function _render(){
     let hh='';
     if(MOVE_MODE){
       if(MOVE_FROM){
-        /* tessera staccata: controlli di scorrimento passo-passo */
         hh+='<div class="ctr"><span class="lbl">↔ Scorri: a destra ruota orario, a sinistra antiorario</span><div class="btns">';
         hh+='<button class="btn" data-act="movePrev">◀ 60°</button>';
         hh+='<button class="btn" data-act="moveNext">60° ▶</button>';
@@ -894,16 +906,24 @@ function _render(){
         hh+='</div></div>';
       }
     }else if(TOKEN_MODE){
-      hh+='<div class="ctr"><span class="lbl">🎯 Scegli colore e tocca il punto sulla tessera</span><div class="btns">';
+      hh+='<div class="ctr"><span class="lbl">🎯 Scegli giocatore e tocca il punto sulla tessera</span><div class="btns">';
       S.players.forEach((p,i)=>{
-        hh+='<button class="btn" data-tokcol="'+i+'" style="border-color:'+(TOKEN_COL===i?'#fff':'var(--line)')+';border-width:'+(TOKEN_COL===i?'2px':'1px')+';background:'+p.color+';color:'+(isLight(p.color)?'#000':'#fff')+'">'+TEMOJI[p.biome]+'</button>';
+        hh+='<button class="btn" data-tokcol="'+i+'" style="border-color:'+(TOKEN_COL===i?'#fff':'var(--line)')+';border-width:'+(TOKEN_COL===i?'2px':'1px')+';background:'+p.color+';color:'+(isLight(p.color)?'#000':'#fff')+'">'+(i+1)+'</button>';
       });
-      hh+='<button class="btn act" data-act="token">✓ Fine token</button>';
+      hh+='<button class="btn act" data-act="token">✓ Fine</button>';
+      hh+='</div></div>';
+    }else if(FREEZE_MODE){
+      hh+='<div class="ctr"><span class="lbl">🔒 Scegli il bioma chiuso e tocca le tessere dell\'area</span><div class="btns">';
+      BIOMES.forEach((b,i)=>{
+        hh+='<button class="btn" data-frzbio="'+i+'" style="border-color:'+(FREEZE_BIO===i?'#fff':'var(--line)')+';border-width:'+(FREEZE_BIO===i?'2px':'1px')+';background:'+TCOL[b]+';color:#fff">'+TEMOJI[b]+'</button>';
+      });
+      hh+='<button class="btn act" data-act="freeze">✓ Fine</button>';
       hh+='</div></div>';
     }else{
       hh+='<div class="ctr"><span class="lbl"><b style="color:'+P.color+'">'+P.name+'</b> · tocca casella per piazzare</span><div class="btns">';
       hh+='<button class="btn" data-act="token">🎯 Token</button>';
       hh+='<button class="btn" data-act="move">↔ Sposta</button>';
+      hh+='<button class="btn" data-act="freeze">🔒 Chiudi</button>';
       hh+='<button class="btn" data-act="rot">↻ Ruota</button>';
       hh+='<button class="btn" data-act="redraw">🔄</button>';
       hh+='</div></div>';
@@ -1065,6 +1085,21 @@ $('boardV').addEventListener('click',e=>{
     }
     return;
   }
+  /* MODALITÀ CONGELA BIOMA: tocco una tessera → chiude/riapre quel bioma su di essa */
+  if(FREEZE_MODE&&hit.type==='tile'){
+    const t=S.valley.get(hit.k);
+    const bio=BIOMES[FREEZE_BIO];
+    if(!t.frozenFor)t.frozenFor=[];
+    if(!t.jolly && !tileBiomes(t).includes(bio)){
+      toast('Questa tessera non ha '+TNAME[bio]);return;
+    }
+    const idx=t.frozenFor.indexOf(bio);
+    if(idx>=0)t.frozenFor.splice(idx,1);   /* riapri */
+    else t.frozenFor.push(bio);            /* chiudi quel bioma */
+    snapshot('congela '+bio+' su '+hit.k);
+    render();
+    return;
+  }
   if(Date.now()-lastDrop<400)return;
   if(hit.type==='place'){lastDrop=Date.now();humanPlace(hit.q,hit.r)}
 });
@@ -1099,6 +1134,7 @@ $('hand').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.paint!==undefined){PAINT=+b.dataset.paint;render();return}
   if(b.dataset.tokcol!==undefined){TOKEN_COL=+b.dataset.tokcol;render();return}
+  if(b.dataset.frzbio!==undefined){FREEZE_BIO=+b.dataset.frzbio;render();return}
   const a=b.dataset.act;
   if(a==='place'){MODE_ACTION='place';SLIDE_FROM=null;render()}
   else if(a==='slide'){MODE_ACTION='slide';SLIDE_FROM=null;render();toast('Tocca la tessera da spostare')}
@@ -1126,10 +1162,17 @@ $('hand').addEventListener('click',e=>{
   }
   else if(a==='token'){
     TOKEN_MODE=!TOKEN_MODE;
+    if(TOKEN_MODE){MOVE_MODE=false;FREEZE_MODE=false;MOVE_FROM=null;}
+    render();
+  }
+  else if(a==='freeze'){
+    FREEZE_MODE=!FREEZE_MODE;
+    if(FREEZE_MODE){MOVE_MODE=false;TOKEN_MODE=false;MOVE_FROM=null;}
     render();
   }
   else if(a==='move'){
     MOVE_MODE=!MOVE_MODE;
+    if(MOVE_MODE){TOKEN_MODE=false;FREEZE_MODE=false;}
     MOVE_FROM=null;MOVE_RING=[];MOVE_IDX=0;MOVE_ROT=0;MOVE_TILE=null;
     render();
   }
