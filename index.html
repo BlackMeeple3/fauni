@@ -96,7 +96,7 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 </div>
 
 <div id="hdr">
-  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v7.2</span></span>
+  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v7.4</span></span>
   <span class="rnd" id="rndLbl"></span>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:10px;color:var(--ink2)"></span></div>
@@ -300,6 +300,7 @@ function placeCells(valley){
 /* una tessera è "esterna e movibile" se: non ha token sopra, e rimuovendola il gruppo resta connesso */
 function isMovable(valley,k){
   const t=valley.get(k);if(!t)return false;
+  if(t.sealed)return false;                             /* tessera sigillata (coperta) → bloccata */
   if(t.tokens&&t.tokens.length)return false;            /* token sopra → bloccata */
   if(valley.size<=1)return false;
   const test=new Map(valley);test.delete(k);
@@ -338,14 +339,14 @@ function perimeterRing(valley,movingK){
 let S=null;
 let MODE_ACTION='place',SLIDE_FROM=null,SEL=0;
 let MOVE_MODE=false,MOVE_FROM=null,MOVE_RING=[],MOVE_IDX=0,MOVE_ROT=0,MOVE_TILE=null;
-let HIST=[],HPTR=-1,REPLAY=false,LAST_FREEZE=null,LAST_SLOT_TAP=0,SANDBOX=false,PAINT=0,TOKEN_MODE=false,TOKEN_COL=0,FREEZE_MODE=false,FREEZE_BIO=0,WAIT_CONFIRM=null;
+let HIST=[],HPTR=-1,REPLAY=false,LAST_FREEZE=null,LAST_SLOT_TAP=0,SANDBOX=false,PAINT=0,TOKEN_MODE=false,TOKEN_COL=0,FREEZE_MODE=false,FREEZE_BIO=0,JOLLY_MODE=false,WAIT_CONFIRM=null;
 function snapshot(label){
   /* deep clone dello stato COMPLETO per la cronologia (mazzo incluso) */
   const snap=JSON.parse(JSON.stringify({
     valley:[...S.valley].map(([k,t])=>[k,t]),
     players:S.players.map(p=>({score:p.score,biome:p.biome,hand:p.hand,name:p.name,color:p.color})),
     deck:S.deck,
-    goalIdx:S.goalIdx,round:S.round,seat:S.seat,
+    round:S.round,seat:S.seat,first:S.first,step:S.step,
     log:S.log,label:label||''
   }));
   HIST.push(snap);HPTR=HIST.length-1;
@@ -356,8 +357,7 @@ function restoreSnap(idx){
   S.valley=new Map(fresh.valley.map(([k,t])=>[k,t]));
   fresh.players.forEach((p,i)=>{S.players[i].score=p.score;S.players[i].hand=p.hand;});
   S.deck=fresh.deck;
-  S.goalIdx=fresh.goalIdx.slice();
-  S.round=fresh.round;S.seat=fresh.seat;S.log=fresh.log;
+  S.round=fresh.round;S.seat=fresh.seat;S.first=fresh.first||0;S.step=fresh.step||0;S.log=fresh.log;
   HPTR=idx;
 }
 function newGame(nBots){
@@ -381,7 +381,7 @@ function newGame(nBots){
   }
 }
 function newGameSandbox(nPlayers){
-  S={np:nPlayers,deck:buildDeck(),valley:new Map(),players:[],round:1,seat:0,phase:'human',
+  S={np:nPlayers,deck:buildDeck(),valley:new Map(),players:[],round:1,seat:0,first:0,step:0,secret:true,committed:null,phase:'human',
     log:[],over:false,closed:[]};
   /* tessera iniziale neutra al centro con biomi misti */
   const startCols=shuffle(BIOMES.slice()).slice(0,3);
@@ -395,8 +395,9 @@ function newGameSandbox(nPlayers){
     S.players.push(p);
   }
   PAINT=0;
+  if(S.secret)startCommit();   /* primo giro: tutti impegnano in segreto */
 }
-const curIdx=()=>S.seat;
+const curIdx=()=>((S.first||0)+(S.step||0))%S.np;
 const curP=()=>S.players[curIdx()];
 /* indice del giocatore proprietario di un bioma (o -1 se neutro) */
 const ownerOf=b=>{const i=S.players.findIndex(p=>p.biome===b);return i;};
@@ -614,19 +615,56 @@ function advance(){
 }
 function humanPlace(q,r){
   if(S.phase!=='human')return;
-  const pi=curIdx();const P=S.players[pi];const tile=P.hand[SEL];if(!tile)return;
+  const pi=curIdx();const P=S.players[pi];
+  /* in fase di gioco con impegno segreto: la tessera è quella impegnata */
+  let tile, idxInHand;
+  if(S.committed && S.committed[pi]!==undefined && S.committed[pi]!==null){
+    idxInHand=S.committed[pi];tile=P.hand[idxInHand];
+  }else{
+    idxInHand=SEL;tile=P.hand[SEL];
+  }
+  if(!tile)return;
+  if(tile.jolly){toast('Il jolly non si piazza così');return;}
   const k=key(q,r);
   if(!placeCells(S.valley).includes(k))return;
-  P.hand.splice(SEL,1);SEL=0;
-  if(S.deck.length)P.hand.push(S.deck.pop());
+  P.hand.splice(idxInHand,1);SEL=0;
+  if(S.committed)S.committed[pi]=null;
+  if(S.deck.length){P.hand.push(S.deck.pop());P.drawn=(P.drawn||0)+1;}
   tile.owner=null;
   if(!tile.tokens)tile.tokens=[];
   S.valley.set(k,tile);
-  /* passa al prossimo giocatore */
-  S.seat=(S.seat+1)%S.np;
-  if(S.seat===0)S.round++;
-  snapshot(PNAMES[pi]+' ha piazzato');
+  endTurnAdvance(pi);
   render();
+}
+/* avanza nel giro; a fine giro il PRIMO ruota e si riapre la fase di impegno */
+function endTurnAdvance(pi){
+  S.step=(S.step||0)+1;
+  if(S.step>=S.np){
+    S.step=0;
+    S.first=((S.first||0)+1)%S.np;
+    S.round++;
+    if(S.secret)startCommit();   /* nuovo giro: tutti impegnano di nuovo in segreto */
+  }
+  snapshot(PNAMES[pi]+' ha giocato');
+}
+/* ===== IMPEGNO SEGRETO ===== */
+function startCommit(){
+  S.phase='commit';
+  S.committed=new Array(S.np).fill(null);
+  S.commitWho=S.first||0;      /* chi sta impegnando ora (parte dal primo del giro) */
+  S.commitDone=0;
+  SEL=0;
+}
+function doCommit(handIdx){
+  if(S.phase!=='commit')return;
+  const pi=S.commitWho;
+  S.committed[pi]=handIdx;      /* memorizza quale tessera ha scelto, coperta */
+  S.commitDone++;
+  S.commitWho=(S.commitWho+1)%S.np;
+  if(S.commitDone>=S.np){
+    S.phase='human';            /* tutti hanno impegnato: si gioca */
+  }
+  SEL=0;render();
 }
 function humanSlide(toK){
   if(S.phase!=='human'||MODE_ACTION!=='slide'||!SLIDE_FROM)return;
@@ -753,8 +791,12 @@ function tileSVG(t,cx,cy,s,hilite){
     }
   }
   g+='</g>';
-  const stroke0=hilite?'#D9A441':'#1c1f19';
-  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+stroke0+'" stroke-width="'+(hilite?2.8:1.5)+'"/>';
+  const stroke0=hilite?'#D9A441':(t.sealed?'#2a2a2a':'#1c1f19');
+  g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+stroke0+'" stroke-width="'+(hilite?2.8:(t.sealed?3.5:1.5))+'"/>';
+  if(t.sealed){
+    /* bordo extra a tratteggio per indicare "bloccata/coperta" */
+    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>';
+  }
   /* MARCHIO BIOMI CONGELATI: per ogni bioma chiuso su questa tessera, una pastiglia
      scura con il colore del bioma e un lucchetto. Indica cosa è chiuso (resto vivo). */
   if(t.frozenFor&&t.frozenFor.length){
@@ -863,13 +905,17 @@ function render(){
 }
 function _render(){
   $('rndLbl').textContent='Giro '+S.round+' · mazzo '+S.deck.length;
-  const pi=curIdx();
+  const inCommit=S.phase==='commit';
+  const pi=inCommit?S.commitWho:curIdx();
   const cp=S.players[pi];
-  /* fascia colorata col colore del giocatore di turno */
   const ph=$('phase');
   ph.style.background=cp.color;
   ph.style.color=isLight(cp.color)?'#23271F':'#fff';
-  $('phaseTxt').innerHTML='<span style="font-size:15px;font-weight:800">'+TEMOJI[cp.biome]+' Tocca a '+cp.name.toUpperCase()+'</span>';
+  if(inCommit){
+    $('phaseTxt').innerHTML='<span style="font-size:15px;font-weight:800">🔒 '+cp.name.toUpperCase()+': scegli in segreto</span>';
+  }else{
+    $('phaseTxt').innerHTML='<span style="font-size:15px;font-weight:800">▶ Tocca a '+cp.name.toUpperCase()+'</span>';
+  }
   $('ptsTxt').textContent='';
   renderBoard();
   renderSidebar();
@@ -888,6 +934,19 @@ function _render(){
     +'</div></div>';
   /* mano */
   const hd=$('hand');
+  /* FASE IMPEGNO SEGRETO: ogni giocatore sceglie e copre una tessera */
+  if(S.phase==='commit'){
+    const pi=S.commitWho;const P=S.players[pi];
+    let hh='<div class="ctr"><span class="lbl">🔒 <b style="color:'+P.color+'">'+P.name+'</b>: scegli in segreto una tessera (gli altri non guardino)</span></div>';
+    hh+='<div class="row" style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">';
+    P.hand.forEach((t,i)=>{
+      hh+='<div class="slot" data-commit="'+i+'" style="border-color:'+(i===SEL?'var(--ocra)':'transparent')+'">'+miniTile(t)+'</div>';
+    });
+    hh+='</div>';
+    hh+='<div class="ctr" style="margin-top:4px"><span class="lbl" style="opacity:.7">Impegnati: '+S.commitDone+'/'+S.np+'</span></div>';
+    hd.innerHTML=hh;hd.style.display='block';
+    return;
+  }
   const human=S.phase==='human';
   if(human){
     const P=S.players[curIdx()];
@@ -920,17 +979,18 @@ function _render(){
       hh+='<button class="btn act" data-act="freeze">✓ Fine</button>';
       hh+='</div></div>';
     }else{
-      hh+='<div class="ctr"><span class="lbl"><b style="color:'+P.color+'">'+P.name+'</b> · tocca casella per piazzare</span><div class="btns">';
+      hh+='<div class="ctr"><span class="lbl"><b style="color:'+P.color+'">'+P.name+'</b> · tocca casella per piazzare · tocca tessera di bordo per coprirla</span><div class="btns">';
       hh+='<button class="btn" data-act="token">🎯 Token</button>';
       hh+='<button class="btn" data-act="move">↔ Sposta</button>';
       hh+='<button class="btn" data-act="freeze">🔒 Chiudi</button>';
+      hh+='<button class="btn'+(JOLLY_MODE?' act':'')+'" data-act="jolly">♻️ Jolly</button>';
       hh+='<button class="btn" data-act="rot">↻ Ruota</button>';
-      hh+='<button class="btn" data-act="redraw">🔄</button>';
       hh+='</div></div>';
     }
     hh+='<div class="row" style="display:flex;gap:6px;margin-top:5px">';
     P.hand.forEach((t,i)=>{
-      hh+='<div class="slot" data-i="'+i+'" style="border-color:'+(i===SEL?'var(--ocra)':'transparent')+'">'+miniTile(t)+'</div>';
+      const isCommitted=S.committed&&S.committed[curIdx()]===i;
+      hh+='<div class="slot" data-i="'+i+'" style="border-color:'+(isCommitted?'#D9A441':(i===SEL?'var(--ocra)':'transparent'))+';'+(isCommitted?'box-shadow:0 0 0 2px #D9A441':'')+'">'+miniTile(t)+(isCommitted?'<div style="position:absolute;top:1px;right:3px;font-size:10px">🔒</div>':'')+'</div>';
     });
     hh+='</div>';
     hd.innerHTML=hh;hd.style.display='block';
@@ -1031,7 +1091,8 @@ $('setup').addEventListener('click',e=>{
     HIST=[];HPTR=-1;REPLAY=false;LAST_FREEZE=null;
     snapshot('inizio');
     $('setup').style.display='none';
-    S.phase='human';render();
+    if(!S.secret)S.phase='human';
+    render();
   }catch(err){
     const bar=document.getElementById('errbar');
     bar.style.display='block';
@@ -1100,9 +1161,61 @@ $('boardV').addEventListener('click',e=>{
     render();
     return;
   }
+  /* MODALITÀ JOLLY: scambia un jolly piazzato con una tua tessera in mano */
+  if(JOLLY_MODE&&hit.type==='tile'){
+    const onBoard=S.valley.get(hit.k);
+    if(!onBoard.jolly){toast('Tocca un JOLLY sul tavolo');return;}
+    const P=S.players[curIdx()];
+    const myTile=P.hand[SEL];
+    if(!myTile||myTile.jolly){toast('Seleziona una tessera normale dalla tua mano');return;}
+    myTile.rot=onBoard.rot||0;
+    myTile.tokens=onBoard.tokens||[];
+    P.hand.splice(SEL,1);
+    P.hand.push(onBoard);
+    onBoard.tokens=[];
+    S.valley.set(hit.k,myTile);
+    JOLLY_MODE=false;SEL=0;
+    snapshot('riscatto jolly');
+    toast('Jolly riscattato, torna in mano');
+    render();
+    return;
+  }
   if(Date.now()-lastDrop<400)return;
-  if(hit.type==='place'){lastDrop=Date.now();humanPlace(hit.q,hit.r)}
+  if(hit.type==='place'){lastDrop=Date.now();humanPlace(hit.q,hit.r);return}
+  /* SOVRAPPOSIZIONE: in fase di gioco, tocco una tessera esterna per coprirla
+     con la mia tessera impegnata. Sostituisce e blocca sopra+sotto. */
+  if(S.phase==='human'&&hit.type==='tile'&&!TOKEN_MODE&&!FREEZE_MODE&&!MOVE_MODE){
+    lastDrop=Date.now();
+    overlapPlace(hit.k);
+  }
 });
+function overlapPlace(k){
+  const pi=curIdx();const P=S.players[pi];
+  let idxInHand, tile;
+  if(S.committed&&S.committed[pi]!=null){idxInHand=S.committed[pi];tile=P.hand[idxInHand];}
+  else{idxInHand=SEL;tile=P.hand[SEL];}
+  if(!tile){toast('Nessuna tessera da posare');return;}
+  const under=S.valley.get(k);
+  if(!under){return;}
+  if(under.sealed){toast('Già bloccata, non si può coprire');return;}
+  /* solo tessere ESTERNE (di bordo) si possono coprire */
+  if(!isOuter(S.valley,k)){toast('Solo le tessere di bordo si coprono');return;}
+  P.hand.splice(idxInHand,1);SEL=0;
+  if(S.committed)S.committed[pi]=null;
+  if(S.deck.length){P.hand.push(S.deck.pop());P.drawn=(P.drawn||0)+1;}
+  tile.owner=null;if(!tile.tokens)tile.tokens=[];
+  tile.sealed=true;          /* sopra+sotto bloccate */
+  tile.under=under;          /* memorizza cosa c'era sotto (storia) */
+  S.valley.set(k,tile);
+  endTurnAdvance(pi);
+  render();
+}
+/* una tessera è esterna se ha almeno un lato verso una cella vuota */
+function isOuter(valley,k){
+  const[q,r]=unkey(k);
+  for(const[dq,dr]of DIRS)if(!valley.has(key(q+dq,r+dr)))return true;
+  return false;
+}
 /* converte un tap schermo in coordinate relative al centro della tessera (q,r), range ~ -1..1 */
 function tapRelToTile(cx_,cy_,q,r){
   const m=BMETA.boardV;if(!m)return null;
@@ -1120,6 +1233,16 @@ $('hand').addEventListener('pointerdown',e=>{
   if(sl)PEND={i:+sl.dataset.i,x:e.clientX,y:e.clientY};
 });
 $('hand').addEventListener('click',e=>{
+  /* fase impegno: tocco una tessera per impegnarla coperta */
+  if(S&&S.phase==='commit'){
+    const cs=e.target.closest('[data-commit]');
+    if(cs){
+      const i=+cs.dataset.commit;
+      if(i===SEL){doCommit(i);}      /* secondo tap conferma */
+      else{SEL=i;render();}          /* primo tap seleziona */
+    }
+    return;
+  }
   const sl=e.target.closest('.slot');
   if(sl&&S&&S.phase==='human'&&!REPLAY){
     const i=+sl.dataset.i;
@@ -1167,7 +1290,13 @@ $('hand').addEventListener('click',e=>{
   }
   else if(a==='freeze'){
     FREEZE_MODE=!FREEZE_MODE;
-    if(FREEZE_MODE){MOVE_MODE=false;TOKEN_MODE=false;MOVE_FROM=null;}
+    if(FREEZE_MODE){MOVE_MODE=false;TOKEN_MODE=false;JOLLY_MODE=false;MOVE_FROM=null;}
+    render();
+  }
+  else if(a==='jolly'){
+    JOLLY_MODE=!JOLLY_MODE;
+    if(JOLLY_MODE){MOVE_MODE=false;TOKEN_MODE=false;FREEZE_MODE=false;MOVE_FROM=null;
+      toast('Seleziona una tua tessera in mano, poi tocca un jolly sul tavolo del suo colore');}
     render();
   }
   else if(a==='move'){
@@ -1198,7 +1327,10 @@ $('hand').addEventListener('click',e=>{
       S.valley.delete(MOVE_FROM);
       S.valley.set(dest,t);
       MOVE_MODE=false;MOVE_FROM=null;MOVE_RING=[];MOVE_TILE=null;MOVE_ROT=0;
-      snapshot('sposta tessera');
+      /* spostare consuma il turno: l'impegno segreto torna in mano, niente pesca */
+      const pi=curIdx();
+      if(S.committed)S.committed[pi]=null;
+      endTurnAdvance(pi);
       render();
     }
   }
