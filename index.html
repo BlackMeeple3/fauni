@@ -86,16 +86,16 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 
 <div id="setup">
   <h1>Il Regno dei Faùni</h1>
-  <p>Ogni giocatore è un bioma: 🟢 Overgrown, 🔵 Coral, 🟡 Dunes, 🟠 Badlands, 🔴 Magma, 🟣 Aether. A turno scegliete in segreto e giocate; chiudete aree di almeno 4 tessere per fare punti.</p>
+  <p>Sei spiriti della natura plasmano il paesaggio attorno al Gran Sasso e portano doni al tempio del Faùno. Fai crescere il tuo elemento più rigoglioso che puoi: ogni area chiusa di almeno 4 tessere è un dono offerto al tempio.</p>
   <div class="pc">
     <button class="btn gold" data-sandbox="3">3 giocatori</button>
     <button class="btn gold" data-sandbox="4">4 giocatori</button>
   </div>
-  <p style="font-size:11px;margin-top:6px">Ogni giocatore prende un bioma, nell'ordine: Overgrown, Coral, Dunes, Badlands, Magma, Aether.</p>
+  <p style="font-size:11px;margin-top:6px">Gli spiriti entrano nell'ordine: 🟢 Bosco, 🔵 Acque, 🟡 Messi, 🟠 Terre, 🔴 Fuoco, 🟣 Sogni.</p>
 </div>
 
 <div id="hdr">
-  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v8.8</span></span>
+  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v8.9</span></span>
   <span class="rnd" id="rndLbl"></span>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:10px;color:var(--ink2)"></span></div>
@@ -143,7 +143,7 @@ const MAX_ROUNDS=25;
 /* ===== COSTANTI ===== */
 const BIOMES=['overgrown','coral','dunes','badlands','magma','aether'];
 const TCOL={overgrown:'#4A8C3F',coral:'#3B9DB5',dunes:'#D9B65A',badlands:'#C77A3E',magma:'#C4413A',aether:'#8E6FC4'};
-const TNAME={overgrown:'Overgrown',coral:'Coral',dunes:'Dunes',badlands:'Badlands',magma:'Magma',aether:'Aether'};
+const TNAME={overgrown:'Spirito del Bosco',coral:'Spirito delle Acque',dunes:'Spirito delle Messi',badlands:'Spirito delle Terre',magma:'Spirito del Fuoco',aether:'Spirito dei Sogni'};
 const TEMOJI={overgrown:'🟢',coral:'🔵',dunes:'🟡',badlands:'🟠',magma:'🔴',aether:'🟣'};
 /* SOGLIA MINIMA 4 per tutti: sotto le 4 tessere connesse un'area non fa punti.
    I punti dipendono dalla LUNGHEZZA dell'area: 1 punto a tessera, uguale per ogni bioma. */
@@ -152,12 +152,12 @@ const SOGLIA_MIN=4;
    Ogni giocatore ne ha 1 di ciascun tipo. Usarli dà un vantaggio;
    quelli NON giocati valgono punti a fine partita (più sono forti, più valgono). */
 const MEEPLES={
-  raddoppio:  {emoji:'✖️', nome:'Raddoppio',   desc:"L'area dove lo metti vale doppio",                 resta:true,  punti:2},
-  ladro:      {emoji:'🥷', nome:'Ladro',        desc:"Su tua tessera, aggancia il bioma avversario: incassi gli stessi punti quando chiude quell'area", resta:true, punti:3},
-  distruggi:  {emoji:'💥', nome:'Distruzione',  desc:"Scarta una tessera avversaria (se non spezza e non ha meeple)", resta:false, punti:3},
-  bisPiazza:  {emoji:'🧱', nome:'Doppia posa',  desc:"Questo turno piazzi due tessere",                  resta:false, punti:1},
-  congela:    {emoji:'🔒', nome:'Congela',      desc:"Blocca una tessera: mai più spostata/ruotata/coperta", resta:true, punti:2},
-  bisMuovi:   {emoji:'↔️', nome:'Doppio passo', desc:"Questo turno sposti due tessere",                  resta:false, punti:1}
+  raddoppio:  {emoji:'🍢', nome:'Bouquet di arrosticini', desc:"L'area dove lo metti vale doppio",                 resta:true,  punti:2},
+  ladro:      {emoji:'🥬', nome:'Le Virtù',                desc:"Su tua tessera, aggancia il bioma avversario: incassi gli stessi punti quando chiude quell'area", resta:true, punti:3},
+  distruggi:  {emoji:'🧆', nome:'Le frittelle',            desc:"Scarta una tessera avversaria (se non spezza e non ha meeple)", resta:false, punti:3},
+  bisPiazza:  {emoji:'🥧', nome:'Timballo alla teramana',  desc:"Questo turno piazzi due tessere",                  resta:false, punti:1},
+  congela:    {emoji:'🧀', nome:'Formaggio fritto',        desc:"Blocca una tessera: mai più spostata/ruotata/coperta", resta:true, punti:2},
+  bisMuovi:   {emoji:'🍮', nome:'Bocconotti',              desc:"Questo turno sposti due tessere",                  resta:false, punti:1}
 };
 const MEEPLE_TIPI=Object.keys(MEEPLES);
 function freshMeeples(){return {raddoppio:2,ladro:2,distruggi:1,bisPiazza:2,congela:2,bisMuovi:2};}  /* 2 di ciascuno, distruzione 1 */
@@ -813,6 +813,36 @@ function hexPts(cx,cy,s){const p=[];for(let k=0;k<6;k++){const a=Math.PI/180*(60
 function hexCenter(q,r,s){return [s*Math.sqrt(3)*(q+r/2), s*1.5*r]}
 function tileSVG(t,cx,cy,s,hilite){
   const c=hexPts(cx,cy,s);let g='';
+  /* TESSERA CENTRALE = GRAN SASSO (Corno Grande), tempio del Faùno.
+     Montagna a vetta aguzza dentro l'esagono, coi 6 lati colorati dei biomi. */
+  if(t.start){
+    const clipId='gs'+t.id;
+    g+='<clipPath id="'+clipId+'"><path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z"/></clipPath>';
+    g+='<g clip-path="url(#'+clipId+')">';
+    /* cielo */
+    g+='<rect x="'+(cx-s)+'" y="'+(cy-s)+'" width="'+(2*s)+'" height="'+(2*s)+'" fill="#2a3340"/>';
+    g+='<rect x="'+(cx-s)+'" y="'+(cy-s)+'" width="'+(2*s)+'" height="'+(s*0.7)+'" fill="#3a4a5c"/>';
+    /* profilo montagna: vetta centrale aguzza con cime laterali (coords relative a s) */
+    const mtn=[[-1,0.35],[-0.6,0.05],[-0.35,0.18],[-0.05,-0.35],[0.1,-0.6],[0.28,-0.28],[0.55,0.12],[0.75,-0.05],[1,0.4],[1,1],[-1,1]];
+    g+='<path d="M'+mtn.map((p,i)=>(i?'L':'')+(cx+p[0]*s)+' '+(cy+p[1]*s)).join(' ')+' Z" fill="#5b6b7a" stroke="#7d8d9c" stroke-width="1"/>';
+    /* neve sulla vetta */
+    g+='<path d="M'+(cx-0.05*s)+' '+(cy-0.35*s)+' L'+(cx+0.1*s)+' '+(cy-0.6*s)+' L'+(cx+0.28*s)+' '+(cy-0.28*s)+' L'+(cx+0.16*s)+' '+(cy-0.26*s)+' L'+(cx+0.1*s)+' '+(cy-0.42*s)+' L'+(cx+0.02*s)+' '+(cy-0.26*s)+' Z" fill="#e8eef2"/>';
+    /* prato ai piedi */
+    g+='<rect x="'+(cx-s)+'" y="'+(cy+0.55*s)+'" width="'+(2*s)+'" height="'+(s*0.45)+'" fill="#3a5a3a"/>';
+    g+='</g>';
+    /* i 6 lati dell'esagono coi colori dei biomi attivi */
+    const nb0=(S&&S.nbio)||BIOMES.length;
+    for(let i=0;i<6;i++){
+      const p0=c[i],p1=c[(i+1)%6];
+      const col=TCOL[BIOMES[i%nb0]];
+      g+='<line x1="'+p0[0]+'" y1="'+p0[1]+'" x2="'+p1[0]+'" y2="'+p1[1]+'" stroke="'+col+'" stroke-width="'+(s*0.13)+'" stroke-linecap="round"/>';
+    }
+    /* tempietto ai piedi */
+    g+='<text x="'+cx+'" y="'+(cy+0.52*s)+'" font-size="'+(s*0.42)+'" text-anchor="middle">🏛️</text>';
+    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="'+(hilite?'#D9A441':'#1c1f19')+'" stroke-width="'+(hilite?2.8:1.5)+'"/>';
+    g+=tokenSVG(t,cx,cy,s);
+    return g;
+  }
   /* JOLLY: tessera speciale iridescente che vale ogni bioma */
   if(t.jolly){
     const clipId='j'+t.id;
