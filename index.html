@@ -86,17 +86,16 @@ window.addEventListener('error',function(e){var b=document.getElementById('errba
 
 <div id="setup">
   <h1>Il Regno dei Faùni</h1>
-  <p>Ogni giocatore è un bioma: 🌲 Selva, 🌿 Pascolo, 💧 Torrente, 🏛️ Borgo. A turno piazzate tessere; quando hai almeno 4 tessere continue del tuo colore puoi congelarle (1 punto l'una).</p>
+  <p>Ogni giocatore è un bioma: 🟢 Overgrown, 🔵 Coral, 🟡 Dunes, 🟠 Badlands, 🔴 Magma, 🟣 Aether. A turno scegliete in segreto e giocate; chiudete aree di almeno 4 tessere per fare punti.</p>
   <div class="pc">
-    <button class="btn gold" data-sandbox="2">2 giocatori</button>
     <button class="btn gold" data-sandbox="3">3 giocatori</button>
     <button class="btn gold" data-sandbox="4">4 giocatori</button>
   </div>
-  <p style="font-size:11px;margin-top:6px">2 = Selva + Pascolo · 3 = + Torrente · 4 = + Borgo</p>
+  <p style="font-size:11px;margin-top:6px">Ogni giocatore prende un bioma, nell'ordine: Overgrown, Coral, Dunes, Badlands, Magma, Aether.</p>
 </div>
 
 <div id="hdr">
-  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v7.4</span></span>
+  <span class="t">Il Regno dei Fa&ugrave;ni <span style="font-size:10px;color:var(--ink2)" id="verLbl">v8.8</span></span>
   <span class="rnd" id="rndLbl"></span>
 </div>
 <div id="phase"><span id="phaseTxt"></span><span id="ptsTxt" style="font-size:10px;color:var(--ink2)"></span></div>
@@ -147,17 +146,44 @@ const TCOL={overgrown:'#4A8C3F',coral:'#3B9DB5',dunes:'#D9B65A',badlands:'#C77A3
 const TNAME={overgrown:'Overgrown',coral:'Coral',dunes:'Dunes',badlands:'Badlands',magma:'Magma',aether:'Aether'};
 const TEMOJI={overgrown:'🟢',coral:'🔵',dunes:'🟡',badlands:'🟠',magma:'🔴',aether:'🟣'};
 /* SOGLIA MINIMA 4 per tutti: sotto le 4 tessere connesse un'area non fa punti.
-   I punti dipendono dalla LUNGHEZZA dell'area (1 punto a tessera, base).
-   L'oro (Dunes) vale di più: PESO punti maggiore. Tutto da bilanciare col playtest. */
+   I punti dipendono dalla LUNGHEZZA dell'area: 1 punto a tessera, uguale per ogni bioma. */
 const SOGLIA_MIN=4;
-/* punti per tessera di ciascun bioma (base 1; oro vale di più) */
-const TPESO_PT={overgrown:1,coral:1,dunes:2,badlands:1,magma:1,aether:1};
-/* diffusione nel mazzo: tutti uguali tranne l'oro (Dunes) più raro */
-const TPESO={overgrown:22,coral:22,dunes:12,badlands:22,magma:22,aether:22};
+/* ===== MEEPLE (poteri limitati) =====
+   Ogni giocatore ne ha 1 di ciascun tipo. Usarli dà un vantaggio;
+   quelli NON giocati valgono punti a fine partita (più sono forti, più valgono). */
+const MEEPLES={
+  raddoppio:  {emoji:'✖️', nome:'Raddoppio',   desc:"L'area dove lo metti vale doppio",                 resta:true,  punti:2},
+  ladro:      {emoji:'🥷', nome:'Ladro',        desc:"Su tua tessera, aggancia il bioma avversario: incassi gli stessi punti quando chiude quell'area", resta:true, punti:3},
+  distruggi:  {emoji:'💥', nome:'Distruzione',  desc:"Scarta una tessera avversaria (se non spezza e non ha meeple)", resta:false, punti:3},
+  bisPiazza:  {emoji:'🧱', nome:'Doppia posa',  desc:"Questo turno piazzi due tessere",                  resta:false, punti:1},
+  congela:    {emoji:'🔒', nome:'Congela',      desc:"Blocca una tessera: mai più spostata/ruotata/coperta", resta:true, punti:2},
+  bisMuovi:   {emoji:'↔️', nome:'Doppio passo', desc:"Questo turno sposti due tessere",                  resta:false, punti:1}
+};
+const MEEPLE_TIPI=Object.keys(MEEPLES);
+function freshMeeples(){return {raddoppio:2,ladro:2,distruggi:1,bisPiazza:2,congela:2,bisMuovi:2};}  /* 2 di ciascuno, distruzione 1 */
+/* ===== SIMBOLI SULLE TESSERE =====
+   Solo una minoranza di tessere ne ha uno. Creano sinergia con i meeple:
+   - 'gelo': la tessera non si può spostare/distruggere/coprire (auto-congelata)
+   - 'piu': dà +1 punto di default
+   - 'recup': ti ridà indietro un meeple specifico (simbolo grande ♻ + pedice del meeple)
+   I simboli si "consumano" quando attivati (diventano usati). */
+const SYM={
+  gelo:  {emoji:'❄️', nome:'Gelo',     desc:'Questa tessera non si sposta, non si distrugge, non si copre'},
+  piu:   {emoji:'➕', nome:'+1 punto', desc:'Dà +1 punto'},
+  recup: {emoji:'♻️', nome:'Recupero', desc:'Ti ridà indietro il meeple indicato'}
+};
+/* quante tessere (su 10) portano un simbolo: ~3 su 10 = minoranza */
+const SYM_RATE=0.3;
+/* punti per tessera: tutti uguali (1) */
+const TPESO_PT={overgrown:1,coral:1,dunes:1,badlands:1,magma:1,aether:1};
+/* diffusione nel mazzo: tutti uguali */
+const TPESO={overgrown:20,coral:20,dunes:20,badlands:20,magma:20,aether:20};
 /* il giocatore È il suo bioma: nome e colore vengono dal bioma */
 /* i giocatori sono entità con colore proprio (non più i biomi, che ora sono 6) */
-const PCOLORS=['#E8E0C8','#5B8DD9','#D96BA0','#6BBF8A'];
-const PNAMES=['Giocatore 1','Giocatore 2','Giocatore 3','Giocatore 4'];
+/* il giocatore È il suo bioma: colore e nome vengono dal bioma */
+const PCOLORS=BIOMES.map(b=>TCOL[b]);
+const PNAMES=BIOMES.map(b=>TNAME[b]);
+const activeBiomes=()=>BIOMES.slice(0,(S&&S.nbio)||BIOMES.length);
 function isLight(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return (r*299+g*587+b*114)/1000>150;}
 const DIRS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
 /* rotolamento: muovendo verso destra (dir 0,1,5 ~ semipiano destro) ruota orario,
@@ -197,37 +223,72 @@ function makeSeeds(cols){
 const mk=cols=>({id:++tid,edges:cols.slice(),seeds:makeSeeds(cols),rot:0,owner:null,frozenFor:[],frozenOwner:null,tokens:[]});
 const mkJolly=()=>({id:++tid,edges:[],jolly:true,seeds:[],rot:0,owner:null,frozenFor:[],frozenOwner:null,tokens:[]});
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
-function buildDeck(){
-  /* mazzo a 6 biomi pesati per rarità (TPESO = quante tessere contengono ogni bioma).
-     Ogni tessera ha 2-3 macchie. Costruisco un sacchetto di "presenze" per bioma. */
-  const bag=[];
-  BIOMES.forEach(b=>{for(let i=0;i<TPESO[b];i++)bag.push(b)});
-  shuffle(bag);
-  const totalSlots=bag.length;
-  /* decido quante tessere a 2 e a 3 macchie per consumare tutto il sacchetto */
-  /* media ~2.5 macchie/tessera → numero tessere ≈ slots/2.5 */
-  const nTiles=Math.round(totalSlots/2.5);
-  const n3=Math.floor(nTiles*0.5), n2=nTiles-n3;
-  const d=[];let bi=0;
-  function takeDistinct(k){
-    const picked=[];let attempts=0;
-    while(picked.length<k && attempts<bag.length*3){
-      if(bag.length===0)break;
-      const idx=bi%bag.length;const col=bag[idx];
-      if(!picked.includes(col)){picked.push(col);bag.splice(idx,1);}
-      else bi++;
-      attempts++;
+function buildDeck(nBiomes){
+  /* distribuzione bilanciata via round-robin globale: scorro i biomi in ordine
+     ciclico e li assegno alle macchie, saltando i duplicati nella stessa tessera. */
+  const BS=BIOMES.slice(0,nBiomes||BIOMES.length);
+  const nc=BS.length;
+  const nTiles=nc<=2?24:Math.round(nc*10);   /* ~10 tessere per bioma */
+  const n3=nc>=3?Math.floor(nTiles*0.5):0, n2=nTiles-n3;
+  let ptr=0;
+  function nextBiome(exclude){
+    /* prossimo bioma in ordine ciclico, saltando quelli già nella tessera */
+    let tries=0;
+    while(tries++<nc){
+      const b=BS[ptr%nc];ptr++;
+      if(!exclude.includes(b))return b;
     }
-    while(picked.length<k){const c=BIOMES.find(b=>!picked.includes(b));if(c)picked.push(c);else break;}
+    return BS.find(b=>!exclude.includes(b))||BS[0];
+  }
+  function buildTile(k){
+    k=Math.min(k,nc);const picked=[];
+    for(let i=0;i<k;i++)picked.push(nextBiome(picked));
     return picked;
   }
-  for(let i=0;i<n3 && bag.length;i++)d.push(mk(takeDistinct(3)));
-  for(let i=0;i<n2 && bag.length;i++)d.push(mk(takeDistinct(2)));
-  while(bag.length>=2)d.push(mk(takeDistinct(2)));
-  if(bag.length===1)d.push(mk([bag.pop(),BIOMES[0]]));
+  const d=[];
+  for(let i=0;i<n3;i++)d.push(mk(buildTile(3)));
+  for(let i=0;i<n2;i++)d.push(mk(buildTile(2)));
+  /* CORREZIONE FINALE: riequilibra le presenze. Per ogni passo, prova a spostare
+     da un bioma sovra-rappresentato a uno sotto, cercando tra tutte le coppie. */
+  function counts(){const c={};BS.forEach(b=>c[b]=0);d.forEach(t=>t.edges.forEach(b=>c[b]++));return c;}
+  for(let pass=0;pass<500;pass++){
+    const c=counts();
+    const hi=BS.slice().sort((a,b)=>c[b]-c[a]);   /* dal più al meno presente */
+    const lo=BS.slice().sort((a,b)=>c[a]-c[b]);
+    if(c[hi[0]]-c[lo[0]]<=1)break;
+    let done=false;
+    /* cerca una coppia (sovra, sotto) per cui esiste una tessera sostituibile */
+    for(const over of hi){
+      for(const under of lo){
+        if(c[over]-c[under]<2)continue;
+        const tile=d.find(t=>t.edges.includes(over)&&!t.edges.includes(under));
+        if(tile){
+          tile.edges[tile.edges.indexOf(over)]=under;
+          tile.seeds=makeSeeds(tile.edges);
+          done=true;break;
+        }
+      }
+      if(done)break;
+    }
+    if(!done)break;
+  }
+  /* SIMBOLI: assegna a una minoranza di tessere. Distribuzione mista dei 3 tipi.
+     I 'recup' sono abbinati a un tipo di meeple specifico (pedice). */
+  const nSym=Math.round(d.length*SYM_RATE);
+  const shuffledTiles=shuffle(d.slice());
+  const recupTipi=MEEPLE_TIPI.slice();   /* a rotazione, i recup coprono vari meeple */
+  let ri=0;
+  for(let i=0;i<nSym && i<shuffledTiles.length;i++){
+    const t=shuffledTiles[i];
+    /* mix: ~40% gelo, ~30% piu, ~30% recup */
+    const r=Math.random();
+    if(r<0.4){t.sym={tipo:'gelo'};}
+    else if(r<0.7){t.sym={tipo:'piu'};}
+    else {t.sym={tipo:'recup', meeple:recupTipi[ri%recupTipi.length]};ri++;}
+  }
   return shuffle(d);
 }
-const tileBiomes=t=>t.jolly?BIOMES.slice():[...new Set(t.edges)];
+const tileBiomes=t=>t.jolly?BIOMES.slice(0,(S&&S.nbio)||BIOMES.length):[...new Set(t.edges)];
 
 /* ===== GEOMETRIA ===== */
 const key=(q,r)=>q+','+r;
@@ -300,8 +361,8 @@ function placeCells(valley){
 /* una tessera è "esterna e movibile" se: non ha token sopra, e rimuovendola il gruppo resta connesso */
 function isMovable(valley,k){
   const t=valley.get(k);if(!t)return false;
-  if(t.sealed)return false;                             /* tessera sigillata (coperta) → bloccata */
-  if(t.tokens&&t.tokens.length)return false;            /* token sopra → bloccata */
+  if(t.sealed)return false;                             /* sigillata (coperta da un'altra) → bloccata */
+  if(t.locked)return false;                             /* congelata da meeple → bloccata */
   if(valley.size<=1)return false;
   const test=new Map(valley);test.delete(k);
   const start=test.keys().next().value;
@@ -309,7 +370,7 @@ function isMovable(valley,k){
   while(q.length){const c=q.shift();const[cq,cr]=unkey(c);
     for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);
       if(test.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(nk)}}}
-  return vis.size===test.size;                          /* gruppo non spezzato */
+  return vis.size===test.size;                          /* non si sposta se spezza il gruppo */
 }
 /* posizioni vuote attorno al gruppo (con la tessera 'moving' rimossa), in ORDINE ciclico
    lungo il perimetro: ogni cella è raggiungibile dalla precedente girando attorno al gruppo */
@@ -339,14 +400,14 @@ function perimeterRing(valley,movingK){
 let S=null;
 let MODE_ACTION='place',SLIDE_FROM=null,SEL=0;
 let MOVE_MODE=false,MOVE_FROM=null,MOVE_RING=[],MOVE_IDX=0,MOVE_ROT=0,MOVE_TILE=null;
-let HIST=[],HPTR=-1,REPLAY=false,LAST_FREEZE=null,LAST_SLOT_TAP=0,SANDBOX=false,PAINT=0,TOKEN_MODE=false,TOKEN_COL=0,FREEZE_MODE=false,FREEZE_BIO=0,JOLLY_MODE=false,WAIT_CONFIRM=null;
+let HIST=[],HPTR=-1,REPLAY=false,LAST_FREEZE=null,LAST_SLOT_TAP=0,SANDBOX=false,PAINT=0,TOKEN_MODE=false,TOKEN_COL=0,FREEZE_MODE=false,FREEZE_BIO=0,JOLLY_MODE=false,MEEPLE_MODE=false,MEEPLE_PICK=null,BIS_PLACE=0,BIS_MOVE=0,WAIT_CONFIRM=null;
 function snapshot(label){
   /* deep clone dello stato COMPLETO per la cronologia (mazzo incluso) */
   const snap=JSON.parse(JSON.stringify({
     valley:[...S.valley].map(([k,t])=>[k,t]),
-    players:S.players.map(p=>({score:p.score,biome:p.biome,hand:p.hand,name:p.name,color:p.color})),
+    players:S.players.map(p=>({score:p.score,biome:p.biome,hand:p.hand,name:p.name,color:p.color,meeples:p.meeples})),
     deck:S.deck,
-    round:S.round,seat:S.seat,first:S.first,step:S.step,
+    round:S.round,seat:S.seat,first:S.first,step:S.step,acted:S.acted,
     log:S.log,label:label||''
   }));
   HIST.push(snap);HPTR=HIST.length-1;
@@ -355,9 +416,9 @@ function restoreSnap(idx){
   const snap=HIST[idx];if(!snap)return;
   const fresh=JSON.parse(JSON.stringify(snap));
   S.valley=new Map(fresh.valley.map(([k,t])=>[k,t]));
-  fresh.players.forEach((p,i)=>{S.players[i].score=p.score;S.players[i].hand=p.hand;});
+  fresh.players.forEach((p,i)=>{S.players[i].score=p.score;S.players[i].hand=p.hand;if(p.meeples)S.players[i].meeples=p.meeples;});
   S.deck=fresh.deck;
-  S.round=fresh.round;S.seat=fresh.seat;S.first=fresh.first||0;S.step=fresh.step||0;S.log=fresh.log;
+  S.round=fresh.round;S.seat=fresh.seat;S.first=fresh.first||0;S.step=fresh.step||0;S.acted=fresh.acted||false;S.log=fresh.log;
   HPTR=idx;
 }
 function newGame(nBots){
@@ -381,15 +442,17 @@ function newGame(nBots){
   }
 }
 function newGameSandbox(nPlayers){
-  S={np:nPlayers,deck:buildDeck(),valley:new Map(),players:[],round:1,seat:0,first:0,step:0,secret:true,committed:null,phase:'human',
-    log:[],over:false,closed:[]};
-  /* tessera iniziale neutra al centro con biomi misti */
-  const startCols=shuffle(BIOMES.slice()).slice(0,3);
-  const initTile=mk([startCols[0],startCols[1],startCols[2],startCols[0],startCols[1],startCols[2]]);
+  S={np:nPlayers,deck:buildDeck(nPlayers),valley:new Map(),players:[],round:1,seat:0,first:0,step:0,secret:true,committed:null,phase:'human',acted:false,
+    log:[],over:false,closed:[],nbio:nPlayers};
+  /* tessera iniziale neutra al centro: solo biomi attivi */
+  const activeBiomes=BIOMES.slice(0,nPlayers);
+  const sc=shuffle(activeBiomes.slice());
+  const a=sc[0], b2=sc[1%sc.length], c2=sc[2%sc.length];
+  const initTile=mk([a,b2,c2,a,b2,c2]);
   initTile.owner=null;initTile.tokens=[];initTile.start=true;
   S.valley.set(key(0,0),initTile);
   for(let i=0;i<nPlayers;i++){
-    const p={name:PNAMES[i],color:PCOLORS[i],score:0,hand:[],drawn:0,jollyAt10:false};
+    const p={name:PNAMES[i],color:PCOLORS[i],biome:BIOMES[i],score:0,hand:[],drawn:0,jollyAt10:false,meeples:freshMeeples()};
     for(let j=0;j<HAND_SIZE;j++)if(S.deck.length){p.hand.push(S.deck.pop());p.drawn++;}
     p.hand.push(mkJolly());      /* 1 jolly iniziale */
     S.players.push(p);
@@ -615,6 +678,8 @@ function advance(){
 }
 function humanPlace(q,r){
   if(S.phase!=='human')return;
+  /* azione principale già fatta? non puoi piazzare di nuovo (salvo doppia posa attiva) */
+  if(S.acted && BIS_PLACE<=0){toast('Hai già agito: gioca meeple/chiusure, poi Fine turno');return;}
   const pi=curIdx();const P=S.players[pi];
   /* in fase di gioco con impegno segreto: la tessera è quella impegnata */
   let tile, idxInHand;
@@ -632,12 +697,37 @@ function humanPlace(q,r){
   if(S.deck.length){P.hand.push(S.deck.pop());P.drawn=(P.drawn||0)+1;}
   tile.owner=null;
   if(!tile.tokens)tile.tokens=[];
+  /* token automatico del giocatore (colore-bioma) al centro della tessera piazzata */
+  tile.tokens.push({pi:pi,x:0,y:0});
+  /* SIMBOLO della tessera appena piazzata: attiva l'effetto */
+  if(tile.sym && !tile.symUsed){
+    if(tile.sym.tipo==='gelo'){
+      tile.locked=true;                /* gelo: la tessera è bloccata da subito */
+      toast('❄️ Tessera congelata dal simbolo (non si sposta/distrugge/copre)');
+    }else if(tile.sym.tipo==='piu'){
+      toast('➕ Questa tessera ti dà +1 punto (segnalo a mano)');
+    }else if(tile.sym.tipo==='recup'){
+      const me=MEEPLES[tile.sym.meeple];
+      toast('♻️ Riprendi il meeple '+(me?me.nome:'')+' (rimettilo nella tua riserva)');
+    }
+  }
   S.valley.set(k,tile);
-  endTurnAdvance(pi);
+  /* doppia posa: se ho il bonus attivo, il primo piazzamento NON consuma l'azione */
+  if(BIS_PLACE>0){
+    BIS_PLACE--;
+    snapshot('doppia posa 1/2');
+    toast('Piazza la seconda tessera');
+    render();return;
+  }
+  /* l'azione principale è fatta, ma il turno NON passa: ora puoi giocare meeple,
+     chiudere aree, ecc. Premi "Fine turno" quando hai finito. */
+  S.acted=true;
+  snapshot(PNAMES[pi]+' ha piazzato');
   render();
 }
 /* avanza nel giro; a fine giro il PRIMO ruota e si riapre la fase di impegno */
 function endTurnAdvance(pi){
+  S.acted=false;S.movedThisTurn=false;   /* nuovo turno: azione da fare */
   S.step=(S.step||0)+1;
   if(S.step>=S.np){
     S.step=0;
@@ -653,7 +743,7 @@ function startCommit(){
   S.committed=new Array(S.np).fill(null);
   S.commitWho=S.first||0;      /* chi sta impegnando ora (parte dal primo del giro) */
   S.commitDone=0;
-  SEL=0;
+  SEL=-1;                       /* niente preselezionato: primo tap seleziona, secondo conferma */
 }
 function doCommit(handIdx){
   if(S.phase!=='commit')return;
@@ -663,8 +753,11 @@ function doCommit(handIdx){
   S.commitWho=(S.commitWho+1)%S.np;
   if(S.commitDone>=S.np){
     S.phase='human';            /* tutti hanno impegnato: si gioca */
+    SEL=0;
+  }else{
+    SEL=-1;                     /* prossimo giocatore: niente preselezionato */
   }
-  SEL=0;render();
+  render();
 }
 function humanSlide(toK){
   if(S.phase!=='human'||MODE_ACTION!=='slide'||!SLIDE_FROM)return;
@@ -725,12 +818,14 @@ function tileSVG(t,cx,cy,s,hilite){
     const clipId='j'+t.id;
     g+='<clipPath id="'+clipId+'"><path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z"/></clipPath>';
     g+='<g clip-path="url(#'+clipId+')">';
-    /* spicchi coi 6 colori dei biomi */
+    /* spicchi coi colori dei biomi ATTIVI (uno per giocatore) */
+    const nb=(S&&S.nbio)||BIOMES.length;
     const R=s*1.3;
-    for(let f=0;f<6;f++){
-      const a0=(f*60-90)*Math.PI/180,a1=((f+1)*60-90)*Math.PI/180;
+    for(let f=0;f<nb;f++){
+      const a0=(f*(360/nb)-90)*Math.PI/180,a1=((f+1)*(360/nb)-90)*Math.PI/180;
       const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
-      g+='<path d="M'+cx+' '+cy+' L'+x0+' '+y0+' A'+R+' '+R+' 0 0 1 '+x1+' '+y1+' Z" fill="'+TCOL[BIOMES[f]]+'" opacity=".88"/>';
+      const large=(360/nb)>180?1:0;
+      g+='<path d="M'+cx+' '+cy+' L'+x0+' '+y0+' A'+R+' '+R+' 0 '+large+' 1 '+x1+' '+y1+' Z" fill="'+TCOL[BIOMES[f]]+'" opacity=".88"/>';
     }
     g+='</g>';
     g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*.32)+'" fill="#fff" opacity=".92"/>';
@@ -808,6 +903,31 @@ function tileSVG(t,cx,cy,s,hilite){
       g+='<circle cx="'+px+'" cy="'+py+'" r="'+(s*.2)+'" fill="'+TCOL[b]+'" stroke="#0f110c" stroke-width="1.5"/>';
       g+='<text x="'+px+'" y="'+(py+s*.07)+'" font-size="'+(s*.22)+'" text-anchor="middle">🔒</text>';
     });
+  }
+  /* SIMBOLO della tessera (gelo/piu/recup): disco semitrasparente in basso */
+  if(t.sym && !t.symUsed){
+    const sx=cx, sy=cy+s*0.5;
+    g+='<circle cx="'+sx+'" cy="'+sy+'" r="'+(s*0.3)+'" fill="rgba(20,22,16,.82)" stroke="#E8D9A0" stroke-width="1.5"/>';
+    if(t.sym.tipo==='recup'){
+      /* simbolo grande ♻ con pedice = emoji del meeple da recuperare */
+      g+='<text x="'+sx+'" y="'+(sy+s*0.04)+'" font-size="'+(s*0.32)+'" text-anchor="middle">♻️</text>';
+      const me=MEEPLES[t.sym.meeple];
+      if(me)g+='<text x="'+(sx+s*0.2)+'" y="'+(sy+s*0.28)+'" font-size="'+(s*0.22)+'" text-anchor="middle">'+me.emoji+'</text>';
+    }else{
+      g+='<text x="'+sx+'" y="'+(sy+s*0.1)+'" font-size="'+(s*0.34)+'" text-anchor="middle">'+SYM[t.sym.tipo].emoji+'</text>';
+    }
+  }
+  /* MEEPLE PIAZZATI sulla tessera (raddoppio, ladro, congela) */
+  if(t.meeplesOn&&t.meeplesOn.length){
+    t.meeplesOn.forEach((m,i)=>{
+      const mx=cx+(i-(t.meeplesOn.length-1)/2)*s*0.45, my=cy-s*0.5;
+      g+='<circle cx="'+mx+'" cy="'+my+'" r="'+(s*0.22)+'" fill="#fff" stroke="'+(PCOLORS[m.pi]||'#000')+'" stroke-width="2"/>';
+      g+='<text x="'+mx+'" y="'+(my+s*0.09)+'" font-size="'+(s*0.26)+'" text-anchor="middle">'+(MEEPLES[m.tipo]?MEEPLES[m.tipo].emoji:'?')+'</text>';
+    });
+  }
+  if(t.locked){
+    /* contorno speciale per tessera congelata da meeple */
+    g+='<path d="M'+c.map((p,i)=>(i?'L':'')+p[0]+' '+p[1]).join(' ')+' Z" fill="none" stroke="#7FD4FF" stroke-width="2.5" stroke-dasharray="4 2"/>';
   }
   g+=tokenSVG(t,cx,cy,s);
   return g;
@@ -912,9 +1032,9 @@ function _render(){
   ph.style.background=cp.color;
   ph.style.color=isLight(cp.color)?'#23271F':'#fff';
   if(inCommit){
-    $('phaseTxt').innerHTML='<span style="font-size:15px;font-weight:800">🔒 '+cp.name.toUpperCase()+': scegli in segreto</span>';
+    $('phaseTxt').innerHTML='<span style="font-size:15px;font-weight:800">🔒 '+(cp.biome?TEMOJI[cp.biome]+' ':'')+cp.name.toUpperCase()+': scegli in segreto</span>';
   }else{
-    $('phaseTxt').innerHTML='<span style="font-size:15px;font-weight:800">▶ Tocca a '+cp.name.toUpperCase()+'</span>';
+    $('phaseTxt').innerHTML='<span style="font-size:15px;font-weight:800">▶ '+(cp.biome?TEMOJI[cp.biome]+' ':'')+'Tocca a '+cp.name.toUpperCase()+'</span>';
   }
   $('ptsTxt').textContent='';
   renderBoard();
@@ -922,15 +1042,29 @@ function _render(){
   renderNav();
   /* tab Regole */
   $('vReti').innerHTML='<div class="card"><h2>Come si fanno punti</h2>'
-    +'<div class="d">Un\'area di un bioma si può chiudere solo quando <b>non può più espandersi</b> (decidi tu) e ha <b>almeno '+SOGLIA_MIN+' tessere</b> collegate. I punti dipendono dalla <b>lunghezza</b>: 1 punto per tessera. L\'oro 🟡 Dunes vale di più (2 a tessera). Sotto le '+SOGLIA_MIN+' tessere, niente punti.</div>'
+    +'<div class="d">Un\'area di un bioma si può chiudere solo quando <b>non può più espandersi</b> (decidi tu) e ha <b>almeno '+SOGLIA_MIN+' tessere</b> collegate. I punti dipendono dalla <b>lunghezza</b>: 1 punto per tessera, uguale per ogni bioma. Sotto le '+SOGLIA_MIN+' tessere, niente punti.</div>'
     +'<table style="width:100%;margin-top:8px;border-collapse:collapse">'
     +'<tr style="opacity:.7"><th style="text-align:left">Bioma</th><th>Min</th><th>Punti/tessera</th></tr>'
-    +BIOMES.map(b=>'<tr><td><span class="chip" style="background:'+TCOL[b]+'"></span> '+TEMOJI[b]+' '+TNAME[b]+'</td><td style="text-align:center;font-weight:700">'+SOGLIA_MIN+'</td><td style="text-align:center;font-weight:700;color:#D9A441">'+TPESO_PT[b]+(TPESO_PT[b]>1?' ⭐':'')+'</td></tr>').join('')
+    +activeBiomes().map(b=>'<tr><td><span class="chip" style="background:'+TCOL[b]+'"></span> '+TEMOJI[b]+' '+TNAME[b]+'</td><td style="text-align:center;font-weight:700">'+SOGLIA_MIN+'</td><td style="text-align:center;font-weight:700;color:#D9A441">'+TPESO_PT[b]+(TPESO_PT[b]>1?' ⭐':'')+'</td></tr>').join('')
     +'</table></div>'
     +'<div class="card"><h2>Come si gioca</h2><div class="d">Tutti scelgono in segreto una tessera, poi si gioca a turno (il primo ruota). Nel tuo turno: <b>piazzi</b> (e peschi), oppure <b>sposti</b> una tessera esterna (e non peschi). 🔒 Chiudi: scegli il bioma e tocca le tessere dell\'area chiusa per segnarla. I punti li metti tu (+/−).</div></div>';
   /* tab Punteggi */
   $('vPunti').innerHTML='<div class="card"><h2>Punteggi</h2><div class="shapes">'
-    +S.players.map((p,i)=>'<div class="netrow"><span><span class="chip" style="background:'+p.color+'"></span> '+p.name+'</span><span style="font-weight:700;font-size:16px;color:'+p.color+'">'+p.score+'</span></div>').join('')
+    +S.players.map((p,i)=>'<div class="netrow"><span><span class="chip" style="background:'+p.color+'"></span> '+(p.biome?TEMOJI[p.biome]+' ':'')+p.name+'</span><span style="font-weight:700;font-size:16px;color:'+p.color+'">'+p.score+'</span></div>').join('')
+    +'</div></div>'
+    +'<div class="card"><h2>Meeple rimasti</h2>'
+    +'<div class="d">Usarli dà un vantaggio; quelli non giocati valgono punti a fine partita.</div>'
+    +S.players.map(p=>'<div class="netrow"><span>'+(p.biome?TEMOJI[p.biome]:'')+' '+p.name+'</span><span>'+MEEPLE_TIPI.map(t=>(p.meeples&&p.meeples[t]?MEEPLES[t].emoji+'×'+p.meeples[t]:'')).filter(Boolean).join(' ')+'</span></div>').join('')
+    +'</div>'
+    +'<div class="card"><h2>I meeple</h2><div class="shapes">'
+    +MEEPLE_TIPI.map(t=>'<div class="netrow"><span>'+MEEPLES[t].emoji+' <b>'+MEEPLES[t].nome+'</b></span><span style="font-size:11px;opacity:.7">non giocato: '+MEEPLES[t].punti+'pt</span></div><div class="d" style="font-size:11px;margin:-2px 0 4px">'+MEEPLES[t].desc+'</div>').join('')
+    +'</div></div>'
+    +'<div class="card"><h2>Simboli sulle tessere</h2>'
+    +'<div class="d">Solo alcune tessere hanno un simbolo. Scegliere quelle giuste crea combo coi meeple.</div>'
+    +'<div class="shapes">'
+    +'<div class="netrow"><span>❄️ <b>Gelo</b></span><span style="font-size:11px;opacity:.7">'+SYM.gelo.desc+'</span></div>'
+    +'<div class="netrow"><span>➕ <b>+1 punto</b></span><span style="font-size:11px;opacity:.7">'+SYM.piu.desc+'</span></div>'
+    +'<div class="netrow"><span>♻️<sub>meeple</sub> <b>Recupero</b></span><span style="font-size:11px;opacity:.7">Ti ridà il meeple del pedice</span></div>'
     +'</div></div>';
   /* mano */
   const hd=$('hand');
@@ -973,16 +1107,30 @@ function _render(){
       hh+='</div></div>';
     }else if(FREEZE_MODE){
       hh+='<div class="ctr"><span class="lbl">🔒 Scegli il bioma chiuso e tocca le tessere dell\'area</span><div class="btns">';
-      BIOMES.forEach((b,i)=>{
+      activeBiomes().forEach((b,i)=>{
         hh+='<button class="btn" data-frzbio="'+i+'" style="border-color:'+(FREEZE_BIO===i?'#fff':'var(--line)')+';border-width:'+(FREEZE_BIO===i?'2px':'1px')+';background:'+TCOL[b]+';color:#fff">'+TEMOJI[b]+'</button>';
       });
       hh+='<button class="btn act" data-act="freeze">✓ Fine</button>';
       hh+='</div></div>';
+    }else if(MEEPLE_MODE){
+      const P2=S.players[curIdx()];
+      hh+='<div class="ctr"><span class="lbl">Scegli un meeple da usare (ne hai 1 di ciascuno)</span><div class="btns">';
+      MEEPLE_TIPI.forEach(t=>{
+        const have=P2.meeples&&P2.meeples[t]>0;
+        hh+='<button class="btn'+(MEEPLE_PICK===t?' act':'')+'" data-meeple="'+t+'" '+(have?'':'disabled style="opacity:.3"')+'>'+MEEPLES[t].emoji+'</button>';
+      });
+      hh+='<button class="btn warn" data-act="meepleClose">✕</button>';
+      hh+='</div></div>';
+      if(MEEPLE_PICK){
+        hh+='<div class="ctr" style="margin-top:3px"><span class="lbl">'+MEEPLES[MEEPLE_PICK].emoji+' <b>'+MEEPLES[MEEPLE_PICK].nome+'</b>: '+MEEPLES[MEEPLE_PICK].desc+'</span></div>';
+      }
     }else{
-      hh+='<div class="ctr"><span class="lbl"><b style="color:'+P.color+'">'+P.name+'</b> · tocca casella per piazzare · tocca tessera di bordo per coprirla</span><div class="btns">';
+      hh+='<div class="ctr"><span class="lbl"><b style="color:'+P.color+'">'+P.name+'</b>'+(S.acted?' · azione fatta, gioca meeple/chiusure poi ▶':' · piazza o sposta')+'</span><div class="btns">';
+      hh+='<button class="btn gold" data-act="endturn">▶ Fine turno</button>';
       hh+='<button class="btn" data-act="token">🎯 Token</button>';
       hh+='<button class="btn" data-act="move">↔ Sposta</button>';
       hh+='<button class="btn" data-act="freeze">🔒 Chiudi</button>';
+      hh+='<button class="btn" data-act="meeple">🧩 Meeple</button>';
       hh+='<button class="btn'+(JOLLY_MODE?' act':'')+'" data-act="jolly">♻️ Jolly</button>';
       hh+='<button class="btn" data-act="rot">↻ Ruota</button>';
       hh+='</div></div>';
@@ -1119,7 +1267,7 @@ $('boardV').addEventListener('click',e=>{
     if(!MOVE_FROM&&hit.type==='tile'){
       if(!isMovable(S.valley,hit.k)){
         const t=S.valley.get(hit.k);
-        toast(t.tokens&&t.tokens.length?'Ha un token: non si sposta':'La sposteresti spezzando il gruppo');
+        toast(t.sealed?'Tessera bloccata (coperta), non si sposta':'La sposteresti spezzando il gruppo');
         return;
       }
       MOVE_FROM=hit.k;
@@ -1162,6 +1310,11 @@ $('boardV').addEventListener('click',e=>{
     return;
   }
   /* MODALITÀ JOLLY: scambia un jolly piazzato con una tua tessera in mano */
+  /* MEEPLE A BERSAGLIO: tocco una tessera per applicare il potere scelto */
+  if(MEEPLE_MODE&&MEEPLE_PICK&&hit.type==='tile'){
+    applyMeepleTarget(MEEPLE_PICK,hit.k);
+    return;
+  }
   if(JOLLY_MODE&&hit.type==='tile'){
     const onBoard=S.valley.get(hit.k);
     if(!onBoard.jolly){toast('Tocca un JOLLY sul tavolo');return;}
@@ -1198,16 +1351,19 @@ function overlapPlace(k){
   const under=S.valley.get(k);
   if(!under){return;}
   if(under.sealed){toast('Già bloccata, non si può coprire');return;}
+  if(under.locked){toast('Tessera congelata, non si può coprire');return;}
   /* solo tessere ESTERNE (di bordo) si possono coprire */
   if(!isOuter(S.valley,k)){toast('Solo le tessere di bordo si coprono');return;}
   P.hand.splice(idxInHand,1);SEL=0;
   if(S.committed)S.committed[pi]=null;
   if(S.deck.length){P.hand.push(S.deck.pop());P.drawn=(P.drawn||0)+1;}
   tile.owner=null;if(!tile.tokens)tile.tokens=[];
+  tile.tokens.push({pi:pi,x:0,y:0});   /* token automatico del giocatore */
   tile.sealed=true;          /* sopra+sotto bloccate */
   tile.under=under;          /* memorizza cosa c'era sotto (storia) */
   S.valley.set(k,tile);
-  endTurnAdvance(pi);
+  S.acted=true;
+  snapshot(PNAMES[pi]+' ha coperto');
   render();
 }
 /* una tessera è esterna se ha almeno un lato verso una cella vuota */
@@ -1217,6 +1373,79 @@ function isOuter(valley,k){
   return false;
 }
 /* converte un tap schermo in coordinate relative al centro della tessera (q,r), range ~ -1..1 */
+function selectMeeple(tipo){
+  const pi=curIdx();const P=S.players[pi];
+  /* i meeple sono segnalini fisici: il software non tiene il conto, lo fai tu a mano */
+  /* meeple ISTANTANEI: effetto subito */
+  if(tipo==='bisPiazza'){
+    BIS_PLACE=1;
+    MEEPLE_MODE=false;MEEPLE_PICK=null;
+    toast('🧱 Doppia posa: piazza due tessere questo turno');
+    snapshot('meeple doppia posa');render();return;
+  }
+  if(tipo==='bisMuovi'){
+    BIS_MOVE=1;
+    MEEPLE_MODE=false;MEEPLE_PICK=null;
+    toast('↔️ Doppio passo: sposti due tessere questo turno');
+    snapshot('meeple doppio passo');render();return;
+  }
+  /* meeple a BERSAGLIO: seleziona, poi tocca una tessera sul tabellone */
+  MEEPLE_PICK=tipo;
+  const istr={raddoppio:'Tocca una tua area da raddoppiare',ladro:'Tocca una tua tessera con un bioma avversario',congela:'Tocca la tessera da congelare',distruggi:'Tocca la tessera avversaria da distruggere'};
+  toast(MEEPLES[tipo].emoji+' '+(istr[tipo]||''));
+  render();
+}
+function applyMeepleTarget(tipo,k){
+  const pi=curIdx();const P=S.players[pi];
+  const t=S.valley.get(k);if(!t)return;
+  if(!t.meeplesOn)t.meeplesOn=[];   /* meeple piazzati su questa tessera */
+  if(tipo==='congela'){
+    /* blocca la tessera: come 'sealed' ma per meeple. Non si sposta/ruota/copre */
+    t.locked=true;
+    t.meeplesOn.push({tipo:'congela',pi});
+    MEEPLE_MODE=false;MEEPLE_PICK=null;
+    snapshot('meeple congela '+k);
+    toast('🔒 Tessera congelata');render();return;
+  }
+  if(tipo==='raddoppio'){
+    /* segna che quest'area/tessera vale doppio (a occhio, i punti li conti tu) */
+    t.meeplesOn.push({tipo:'raddoppio',pi});
+    MEEPLE_MODE=false;MEEPLE_PICK=null;
+    snapshot('meeple raddoppio '+k);
+    toast('✖️ Area raddoppiata (conteggio a mano)');render();return;
+  }
+  if(tipo==='ladro'){
+    /* su una TUA tessera, aggancia un bioma avversario presente su di essa */
+    const mine=(t.tokens||[]).some(tok=>tok.pi===pi);
+    if(!mine){toast('Deve essere una tua tessera');return;}
+    const altrui=tileBiomes(t).filter(b=>b!==P.biome);
+    if(!altrui.length){toast('Nessun bioma avversario su questa tessera');return;}
+    /* aggancia il primo bioma avversario (per il prototipo) */
+    t.meeplesOn.push({tipo:'ladro',pi,bioma:altrui[0]});
+    MEEPLE_MODE=false;MEEPLE_PICK=null;
+    snapshot('meeple ladro '+k);
+    toast('🥷 Ladro agganciato a '+TNAME[altrui[0]]+' (incassi quando chiude qui)');render();return;
+  }
+  if(tipo==='distruggi'){
+    /* scarta una tessera avversaria, se non spezza e non ha meeple sopra */
+    const mine=(t.tokens||[]).some(tok=>tok.pi===pi);
+    if(mine){toast('Non puoi distruggere una tua tessera');return;}
+    if(t.meeplesOn&&t.meeplesOn.length){toast('Ha un meeple sopra, non si distrugge');return;}
+    if(t.start){toast('Non puoi distruggere la tessera iniziale');return;}
+    if(t.locked){toast('Tessera congelata, non si distrugge');return;}
+    /* verifica che togliendola il gruppo resti connesso */
+    const test=new Map(S.valley);test.delete(k);
+    if(test.size>0){
+      const start=test.keys().next().value;const vis=new Set([start]);const q=[start];
+      while(q.length){const c=q.shift();const[cq,cr]=unkey(c);for(const[dq,dr]of DIRS){const nk=key(cq+dq,cr+dr);if(test.has(nk)&&!vis.has(nk)){vis.add(nk);q.push(nk)}}}
+      if(vis.size!==test.size){toast('La distruggeresti spezzando il gruppo');return;}
+    }
+    S.valley.delete(k);            /* tessera scartata */
+    MEEPLE_MODE=false;MEEPLE_PICK=null;
+    snapshot('meeple distrugge '+k);
+    toast('💥 Tessera distrutta');render();return;
+  }
+}
 function tapRelToTile(cx_,cy_,q,r){
   const m=BMETA.boardV;if(!m)return null;
   const svg=$('boardV').querySelector('svg');if(!svg)return null;
@@ -1258,6 +1487,7 @@ $('hand').addEventListener('click',e=>{
   if(b.dataset.paint!==undefined){PAINT=+b.dataset.paint;render();return}
   if(b.dataset.tokcol!==undefined){TOKEN_COL=+b.dataset.tokcol;render();return}
   if(b.dataset.frzbio!==undefined){FREEZE_BIO=+b.dataset.frzbio;render();return}
+  if(b.dataset.meeple!==undefined){selectMeeple(b.dataset.meeple);return}
   const a=b.dataset.act;
   if(a==='place'){MODE_ACTION='place';SLIDE_FROM=null;render()}
   else if(a==='slide'){MODE_ACTION='slide';SLIDE_FROM=null;render();toast('Tocca la tessera da spostare')}
@@ -1293,9 +1523,26 @@ $('hand').addEventListener('click',e=>{
     if(FREEZE_MODE){MOVE_MODE=false;TOKEN_MODE=false;JOLLY_MODE=false;MOVE_FROM=null;}
     render();
   }
+  else if(a==='endturn'){
+    /* fine turno: passa al prossimo giocatore. Resetta i flag del turno. */
+    const pi=curIdx();
+    BIS_PLACE=0;BIS_MOVE=0;
+    S.acted=false;S.movedThisTurn=false;
+    TOKEN_MODE=false;FREEZE_MODE=false;MEEPLE_MODE=false;MEEPLE_PICK=null;JOLLY_MODE=false;MOVE_MODE=false;MOVE_FROM=null;
+    endTurnAdvance(pi);
+    render();
+  }
+  else if(a==='meeple'){
+    MEEPLE_MODE=!MEEPLE_MODE;MEEPLE_PICK=null;
+    if(MEEPLE_MODE){MOVE_MODE=false;TOKEN_MODE=false;FREEZE_MODE=false;JOLLY_MODE=false;MOVE_FROM=null;}
+    render();
+  }
+  else if(a==='meepleClose'){
+    MEEPLE_MODE=false;MEEPLE_PICK=null;render();
+  }
   else if(a==='jolly'){
     JOLLY_MODE=!JOLLY_MODE;
-    if(JOLLY_MODE){MOVE_MODE=false;TOKEN_MODE=false;FREEZE_MODE=false;MOVE_FROM=null;
+    if(JOLLY_MODE){MOVE_MODE=false;TOKEN_MODE=false;FREEZE_MODE=false;MEEPLE_MODE=false;MOVE_FROM=null;
       toast('Seleziona una tua tessera in mano, poi tocca un jolly sul tavolo del suo colore');}
     render();
   }
@@ -1327,10 +1574,19 @@ $('hand').addEventListener('click',e=>{
       S.valley.delete(MOVE_FROM);
       S.valley.set(dest,t);
       MOVE_MODE=false;MOVE_FROM=null;MOVE_RING=[];MOVE_TILE=null;MOVE_ROT=0;
-      /* spostare consuma il turno: l'impegno segreto torna in mano, niente pesca */
       const pi=curIdx();
+      /* doppio passo: il primo spostamento non chiude il turno */
+      if(BIS_MOVE>0){
+        BIS_MOVE--;
+        snapshot('doppio passo 1/2');
+        toast('Sposta la seconda tessera (↔ Sposta)');
+        render();return;
+      }
+      /* spostare è l'azione del turno: l'impegno torna in mano, niente pesca.
+         Il turno NON passa: premi Fine turno quando hai finito (meeple, chiusure...). */
       if(S.committed)S.committed[pi]=null;
-      endTurnAdvance(pi);
+      S.acted=true;S.movedThisTurn=true;
+      snapshot(PNAMES[pi]+' ha spostato');
       render();
     }
   }
